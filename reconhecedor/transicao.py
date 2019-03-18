@@ -33,3 +33,5 @@ class Transicao:
             return False
         if self.getSimbolo() != other.getSimbolo():
             return False
+
+        return True
