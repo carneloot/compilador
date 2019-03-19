@@ -21,7 +21,7 @@ class Automato:
     def log(self, text: str):
         if self._log:
             print('LOG:', text)
-        
+
     def setState(self, id: int, label: str = None):
         self._states[id] = Estado(id, f'estado{id}', label)
         self.log(f'Adicionando o estado{id} no automato.')
@@ -88,7 +88,8 @@ class Automato:
         self.log('Iniciando teste')
 
         if entrada == '':
-            return (self._start_state in self._final_states, self.getStartState().getLabel())
+            return (self._start_state in self._final_states,
+                    self.getStartState().getLabel())
 
         origem = self.getStartState()
 

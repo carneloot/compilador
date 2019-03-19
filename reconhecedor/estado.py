@@ -5,7 +5,7 @@ class Estado:
         self._nome = nome
         if label is None:
             self._label = 'Erro'
-            
+
         else:
             self._label = label
 
