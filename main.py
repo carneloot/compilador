@@ -29,7 +29,7 @@ if __name__ == '__main__':
 
     # Transicoes
     automata.setTransition(1, 2, '[a-z]')
-    automata.setTransition(2, 2, '[a-z0-9]')
+    automata.setTransition(2, 2, '[a-z0-9_]')
 
     automata.setTransition(1, 3, '[ \\n]')
     automata.setTransition(3, 3, '[ \\n]')
