@@ -1,9 +1,13 @@
 class Estado:
 
-    def __init__(self, id: int, nome: str, label: str):
+    def __init__(self, id: int, nome: str, label: str = 'Erro'):
         self._id = id
         self._nome = nome
-        self._label = label
+        if label is None:
+            self._label = 'Erro'
+            
+        else:
+            self._label = label
 
     def getId(self) -> int:
         return self._id

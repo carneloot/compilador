@@ -7,8 +7,21 @@ if __name__ == '__main__':
     automata.enableLogging()
 
     # Setando os estados
-    for i in range(1, 15):
-        automata.setState(i)
+
+    automata.setState(1)
+    automata.setState(2,  'ID/Reservada')
+    automata.setState(3,  'Espaço')
+    automata.setState(4,  'Inteiro')
+    automata.setState(5,  'Real')
+    automata.setState(6,  'Símbolo especial')
+    automata.setState(7,  'Símbolo especial')
+    automata.setState(8,  'Símbolo composto')
+    automata.setState(9,  'Símbolo especial')
+    automata.setState(10, 'Símbolo especial')
+    automata.setState(11, 'Símbolo especial')
+    automata.setState(12, 'Símbolo especial')
+    automata.setState(13, 'Símbolo especial')
+    automata.setState(14, 'Símbolo especial')
 
     # Estados finais e inicial
     automata.setStartState(1)

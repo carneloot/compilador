@@ -21,9 +21,9 @@ class Automato:
     def log(self, text: str):
         if self._log:
             print('LOG:', text)
-
-    def setState(self, id: int):
-        self._states[id] = Estado(id, f'estado{id}', str(id))
+        
+    def setState(self, id: int, label: str = None):
+        self._states[id] = Estado(id, f'estado{id}', label)
         self.log(f'Adicionando o estado{id} no automato.')
 
     def setFinalState(self, id: int):
@@ -83,11 +83,12 @@ class Automato:
     def getFinalStateSize(self):
         return len(self._final_states)
 
-    def test(self, entrada: str) -> bool:
+    def test(self, entrada: str) -> (bool, str):
+
         self.log('Iniciando teste')
 
         if entrada == '':
-            return self._start_state in self._final_states
+            return (self._start_state in self._final_states, self.getStartState().getLabel())
 
         origem = self.getStartState()
 
@@ -100,7 +101,7 @@ class Automato:
                     f'Nao foi possivel encontrar uma transicao '
                     f'para a letra \'{letra}\' na posicao \'{posicao}\'. '
                     f'Estado atual: {origem.getNome()}.'))
-                return False
+                return (False, 'Erro')
 
             destino = transicao.getDestino()
 
@@ -110,4 +111,4 @@ class Automato:
 
             origem = destino
 
-        return self.isFinalState(origem.getId())
+        return (self.isFinalState(origem.getId()), origem.getLabel())
