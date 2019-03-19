@@ -17,7 +17,6 @@ if __name__ == '__main__':
     automata.setFinalState(7)
 
     # Transicoes
-
     automata.setTransition(0, 0, '0')
     automata.setTransition(1, 3, '0')
     automata.setTransition(2, 0, '0')

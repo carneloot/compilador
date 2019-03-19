@@ -1,5 +1,6 @@
 from .estado import Estado
 from .transicao import Transicao
+import re
 
 
 class Automato:
@@ -35,10 +36,14 @@ class Automato:
     def getTransition(self, origem: int, simbolo: str) -> Transicao:
         for transition in self._transitions:
             if transition.getOrigem().getId() == origem and \
-               transition.getSimbolo() == simbolo:
+               self.checkSymbol(transition.getSimbolo(), simbolo):
                 return transition
 
         return None
+
+    @staticmethod
+    def checkSymbol(regex, symbol):
+        return re.compile(regex).match(symbol) is not None
 
     def getStartState(self) -> Estado:
         return self._start_state
@@ -54,7 +59,6 @@ class Automato:
 
     def isFinalState(self, id: int) -> bool:
         return self._final_states.get(id) is not None
-        # return self._final_states[id] is not None
 
     def getFinalStateSize(self):
         return len(self._final_states)
