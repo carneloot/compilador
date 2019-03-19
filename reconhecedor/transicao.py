@@ -1,4 +1,4 @@
-from estado import Estado
+from .estado import Estado
 
 
 class Transicao:
@@ -35,3 +35,8 @@ class Transicao:
             return False
 
         return True
+
+    def __str__(self):
+        return (
+            f'{self._origem.getNome()} - {self._simbolo} -> '
+            f'{self._destino.getNome()}')

@@ -22,3 +22,6 @@ class Estado:
 
     def setLabel(self, label: str):
         self._label = label
+
+    def __str__(self):
+        return f'{self._id}({self._nome})'
