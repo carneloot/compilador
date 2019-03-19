@@ -29,8 +29,8 @@ if __name__ == '__main__':
     automata.setTransition(1, 2, '[a-z]')
     automata.setTransition(2, 2, '[a-z0-9]')
 
-    automata.setTransition(1, 3, ' \\n')
-    automata.setTransition(3, 3, ' \\n')
+    automata.setTransition(1, 3, '[ \\n]')
+    automata.setTransition(3, 3, '[ \\n]')
 
     automata.setTransition(1, 4, '[0-9]')
     automata.setTransition(4, 4, '[0-9]')
@@ -60,6 +60,6 @@ if __name__ == '__main__':
     automata.setTransition(1, 14, '[+-]')
     automata.setTransition(14, 4, '[0-9]')
 
-    entrada = '-1'
+    entrada = '  \n  '
 
     print(automata.test(entrada))
