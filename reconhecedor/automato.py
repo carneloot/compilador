@@ -11,8 +11,8 @@ class Automato:
         self._transitions = []
         self._start_state = None
 
-    def setState(self, id: int):
-        self._states[id] = Estado(id, f'estado{id}', str(id))
+    def setState(self, id: int, label: str = None):
+        self._states[id] = Estado(id, f'estado{id}', label)
 
     def setFinalState(self, id: int):
         if self._states[id] is None:
@@ -63,9 +63,9 @@ class Automato:
     def getFinalStateSize(self):
         return len(self._final_states)
 
-    def test(self, entrada: str) -> bool:
+    def test(self, entrada: str) -> (bool, str):
         if entrada == '':
-            return self._start_state in self._final_states
+            return (self._start_state in self._final_states, self.getStartState().getLabel())
 
         origem = self.getStartState()
 
@@ -74,7 +74,7 @@ class Automato:
 
             # Nao encontrou a transicao
             if transicao is None:
-                return False
+                return (False, 'Erro')
                 # raise Exception((
                 #     f'Nao foi possivel encontrar uma transicao '
                 #     f'para a letra \'{letra}\' na posicao \'{posicao}\'. '
@@ -83,4 +83,4 @@ class Automato:
             destino = transicao.getDestino()
             origem = destino
 
-        return self.isFinalState(origem.getId())
+        return (self.isFinalState(origem.getId()), origem.getLabel())
