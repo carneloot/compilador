@@ -4,6 +4,8 @@ if __name__ == '__main__':
 
     automata = Automato()
 
+    automata.enableLogging()
+
     # Setando os estados
     for i in range(1, 15):
         automata.setState(i)
@@ -60,6 +62,6 @@ if __name__ == '__main__':
     automata.setTransition(1, 14, '[+-]')
     automata.setTransition(14, 4, '[0-9]')
 
-    entrada = '  \n  '
+    entrada = 'a@'
 
     print(automata.test(entrada))
