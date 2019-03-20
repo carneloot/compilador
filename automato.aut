@@ -1,0 +1,40 @@
+[States]
+1;estado1;i
+2;estado2;f;ID/Reservada
+3;estado3;f;Espaco
+4;estado4;f;Inteiro
+5;estado5;f;Real
+6;estado6;f;Simbolo especial
+7;estado7;f;Simbolo especial
+8;estado8;f;Simbolo Composto
+9;estado9;f;Simbolo especial
+10;estado10;f;Simbolo especial
+11;estado11;f;Simbolo especial
+12;estado12;f;Simbolo especial
+13;estado13;f;Simbolo especial
+14;estado14;f;Simbolo especial
+
+[Transitions]
+1;2;[a-z]
+2;2;[a-z0-9]
+1;3;[ \n]
+3;3;[ \n]
+1;4;[0-9]
+4;4;[0-9]
+4;5;\.
+5;5;[0-9]
+1;6;[\',;\)=/\[\]\{\}_]
+1;7;:
+7;8;=
+1;9;\.
+9;8;\.
+1;10;<
+10;8;[=>]
+1;11;>
+11;8;=
+1;12;\(
+12;8;\*
+1;13;\*
+13;8;\)
+1;14;[+-]
+14;4;[0-9]
