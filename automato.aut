@@ -3,7 +3,8 @@
 2;estado2;f;ID/Reservada
 3;estado3;f;Espaco
 4;estado4;f;Inteiro
-5;estado5;f;Real
+5;estado5;;Erro - Numero real incompleto
+15;estado15;f;Real
 6;estado6;f;Simbolo especial
 7;estado7;f;Simbolo especial
 8;estado8;f;Simbolo Composto
@@ -22,7 +23,7 @@
 1;4;[0-9]
 4;4;[0-9]
 4;5;\.
-5;5;[0-9]
+5;15;[0-9]
 1;6;[\',;\)=/\[\]\{\}_]
 1;7;:
 7;8;=
