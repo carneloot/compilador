@@ -85,16 +85,27 @@ class Automato:
 
         origem = self.getStartState()
 
+        contador = -1  # Conta em qual posićão da string de entrada o autômato está. Utilizado no analizador lexico
+
         for posicao, letra in enumerate(entrada):
+            contador += 1
             transicao = self.getTransition(origem.getId(), letra)
 
             # Nao encontrou a transicao
             if transicao is None:
-                self.log((
-                    f'Nao foi possivel encontrar uma transicao '
-                    f'para a letra \'{letra}\' na posicao \'{posicao}\'. '
-                    f'Estado atual: {origem.getNome()}.'))
-                return (False, 'Erro')
+                if origem.isFinalState:
+                    self.log((
+                        f'Fim do token '
+                        f'\'{origem.getLabel()}\' na posicao \'{contador}\'. '
+                        f'Estado atual: {origem.getNome()}.'))
+
+                    return (True, origem.getLabel(), contador)
+                else:
+                    self.log((
+                        f'Nao foi possivel encontrar uma transicao '
+                        f'para a letra \'{letra}\' na posicao \'{contador}\'. '
+                        f'Estado atual: {origem.getNome()}.'))
+                    return (False, 'Erro', contador)
 
             destino = transicao.getDestino()
 
@@ -104,7 +115,7 @@ class Automato:
 
             origem = destino
 
-        return (self.isFinalState(origem.getId()), origem.getLabel())
+        return (self.isFinalState(origem.getId()), origem.getLabel(), contador)
 
     @staticmethod
     def checkSymbol(regex, symbol):
