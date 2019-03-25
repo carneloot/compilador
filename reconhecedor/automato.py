@@ -80,7 +80,7 @@ class Automato:
         return len(self._final_states)
 
     def test(self, entrada: str) -> (bool, str):
-
+        
         self.log('Iniciando teste')
 
         origem = self.getStartState()
@@ -93,7 +93,7 @@ class Automato:
 
             # Nao encontrou a transicao
             if transicao is None:
-                if origem.isFinalState:
+                if self.isFinalState(origem.getId()):
                     self.log((
                         f'Fim do token '
                         f'\'{origem.getLabel()}\' na posicao \'{contador}\'. '
