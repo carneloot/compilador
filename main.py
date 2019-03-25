@@ -6,4 +6,4 @@ if __name__ == '__main__':
 
     automato.enableLogging()
 
-    print(automato.test('3.141592653589'))
+    print(automato.test('3A'))
