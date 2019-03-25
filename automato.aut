@@ -1,3 +1,6 @@
+[Automata]
+[a-zA-Z0-9 \n()[\]{}*\-=_+<>.,;/]
+
 [States]
 1;estado1;i
 2;estado2;f;ID/Reservada
