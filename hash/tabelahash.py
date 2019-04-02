@@ -35,20 +35,47 @@ class TabelaHash:
             raise TypeError('Tipo da chave utilizada deve ser uma string.')
 
         posicao = self.__hash(key)
-        self._tabela[posicao] = value
+
+        item = {
+            'chave': key,
+            'valor': value
+        }
+
+        if self._tabela[posicao] is None:
+            self._tabela[posicao] = [item]
+            return posicao
+
+        else:
+            for item in self._tabela[posicao]:
+                if item['chave'] == key:
+                    raise KeyError('Chave já existente')
+
+            self._tabela[posicao].append(item)
+            return posicao
 
     def getItem(self, key):
         if type(key) != str:
             raise TypeError('Tipo da chave utilizada deve ser uma string.')
 
         posicao = self.__hash(key)
-        return self._tabela[posicao]
+
+        if self._tabela[posicao] is not None:
+            for item in self._tabela[posicao]:
+                if item['chave'] == key:
+                    return item
+
+            raise KeyError('Chave nao encontrada')
+        raise KeyError('Chave nao encontrada')
 
 
 if __name__ == '__main__':
     tabela = TabelaHash()
 
     tabela['teste'] = 'teste'
+    tabela['matheus'] = 'matheus'
+    tabela['daniel'] = 'daniel'
+    tabela['verdade'] = 'verdade'
+    tabela['bob'] = 'bob'
 
     with open('arquivo.txt', 'w') as arquivo:
-        tabela.print(arquivo)
+        tabela.print(arquivo, False)
