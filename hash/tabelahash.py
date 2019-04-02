@@ -1,12 +1,12 @@
-import sys
+from sys import stdout
 
 
 class TabelaHash:
 
     def __init__(self, tamanho: int = 211, alpha: int = 10):
-        self._alpha = alpha
-        self._tamanho = tamanho
-        self._tabela = [None for i in range(tamanho)]
+        self.__alpha = alpha
+        self.__tamanho = tamanho
+        self.__tabela = [None for i in range(tamanho)]
 
     def __setitem__(self, key, value):
         return self.addItem(key, value)
@@ -18,15 +18,15 @@ class TabelaHash:
         h = 0
 
         for i, letra in enumerate(chave):
-            h = self._alpha * h + ord(letra)
+            h = self.__alpha * h + ord(letra)
 
-        return h % self._tamanho
+        return h % self.__tamanho
 
     def getPos(self, chave: str):
-        return self.__hash(chave)
+        return self.___hash(chave)
 
-    def print(self, filesrc=sys.stdout, print_none=True):
-        for i, valor in enumerate(self._tabela):
+    def print(self, filesrc=stdout, print_none=True):
+        for i, valor in enumerate(self.__tabela):
             if print_none or valor is not None:
                 print(f'{str(i).zfill(3)}: {valor}', file=filesrc)
 
@@ -41,16 +41,16 @@ class TabelaHash:
             'valor': value
         }
 
-        if self._tabela[posicao] is None:
-            self._tabela[posicao] = [item]
+        if self.__tabela[posicao] is None:
+            self.__tabela[posicao] = [item]
             return posicao
 
         else:
-            for item in self._tabela[posicao]:
+            for item in self.__tabela[posicao]:
                 if item['chave'] == key:
                     raise KeyError('Chave já existente')
 
-            self._tabela[posicao].append(item)
+            self.__tabela[posicao].append(item)
             return posicao
 
     def getItem(self, key):
@@ -59,8 +59,8 @@ class TabelaHash:
 
         posicao = self.__hash(key)
 
-        if self._tabela[posicao] is not None:
-            for item in self._tabela[posicao]:
+        if self.__tabela[posicao] is not None:
+            for item in self.__tabela[posicao]:
                 if item['chave'] == key:
                     return item
 
