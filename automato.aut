@@ -3,8 +3,7 @@
 2;estado2;f;ID/Reservada
 3;estado3;f;Espaco
 4;estado4;f;Inteiro
-5;estado5;;Erro - Numero real incompleto
-15;estado15;f;Real
+5;estado5;f;Real
 6;estado6;f;Simbolo especial
 7;estado7;f;Simbolo especial
 8;estado8;f;Simbolo Composto
@@ -14,17 +13,18 @@
 12;estado12;f;Simbolo especial
 13;estado13;f;Simbolo especial
 14;estado14;f;Simbolo especial
+15;estado15;;Simbolo especial underline
 
 [Transitions]
-1;2;[a-z]
-2;2;[a-z0-9]
+1;2;[a-zA-Z]
+2;2;[a-zA-Z0-9]
 1;3;[ \n]
 3;3;[ \n]
 1;4;[0-9]
 4;4;[0-9]
 4;5;\.
-5;15;[0-9]
-1;6;[\',;\)=/\[\]\{\}_]
+5;5;[0-9]
+1;6;[\',;\)=/\[\]\{\}]
 1;7;:
 7;8;=
 1;9;\.
@@ -39,3 +39,4 @@
 13;8;\)
 1;14;[+-]
 14;4;[0-9]
+1;15;\_
