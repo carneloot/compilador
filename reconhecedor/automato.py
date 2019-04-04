@@ -11,6 +11,7 @@ class Automato:
         self._transitions = []
         self._start_state = None
         self._log = False
+        self._alfabeto_regex = ''
 
     def enableLogging(self):
         self._log = True
@@ -70,6 +71,12 @@ class Automato:
     def getFinalState(self, id: int) -> bool:
         return self._final_states[id]
 
+    def setAlfabeto(self, alfabeto: str):
+        self._alfabeto_regex = alfabeto
+
+    def getAlfabeto(self) -> str:
+        return self._alfabeto_regex
+
     def isStartState(self, id: int) -> bool:
         return self._states[id] == self._start_state
 
@@ -79,6 +86,9 @@ class Automato:
     def getFinalStateSize(self):
         return len(self._final_states)
 
+    def checkIfInAlphabet(self, symbol: str):
+        return Automato.checkSymbol(self._alfabeto_regex, symbol)
+
     def test(self, entrada: str) -> (bool, str):
 
         self.log('Iniciando teste')
@@ -86,6 +96,9 @@ class Automato:
         origem = self.getStartState()
 
         for posicao, letra in enumerate(entrada):
+            if not self.checkIfInAlphabet(letra):
+                return (False, 'Not in alphabet')
+
             transicao = self.getTransition(origem.getId(), letra)
 
             # Nao encontrou a transicao
@@ -137,6 +150,10 @@ class Automato:
                     tipo = 1
                     continue
 
+                elif linha.lower() == '[automata]':
+                    tipo = 2
+                    continue
+
                 if tipo == 0:  # Estado
                     opcoes = linha.split(';')
 
@@ -165,6 +182,9 @@ class Automato:
                     symbol = opcoes[2]
 
                     automato.setTransition(origem, destino, symbol)
+
+                elif tipo == 2:  # Automato
+                    automato.setAlfabeto(linha)
 
         automato.disableLogging()
         return automato
