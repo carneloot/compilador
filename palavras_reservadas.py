@@ -14,10 +14,8 @@ def criar_palavras_reservadas(nome_arquivo: str):
 
     palavras_reservadas = {}
 
-    i = 0
     for palavra in palavras:
-        palavras_reservadas[palavra] = i
-        i = i + 1
+        palavras_reservadas[palavra] = ''
 
     print("LOG:Palavras lidas com sucesso.\n")
 
