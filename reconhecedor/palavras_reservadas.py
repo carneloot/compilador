@@ -6,17 +6,13 @@
 
 
 def criar_palavras_reservadas(nome_arquivo: str):
-
-    print("\nLOG:Iniciando leitura de palavras reservadas.")
-
     reservadas = open(nome_arquivo, "r")
-    palavras = reservadas.readlines()
+    palavras = reservadas.read()
+    palavras = palavras.split('\n')
 
     palavras_reservadas = {}
 
     for palavra in palavras:
-        palavras_reservadas[palavra] = ''
-
-    print("LOG:Palavras lidas com sucesso.\n")
+        palavras_reservadas[palavra] = palavra
 
     return palavras_reservadas
