@@ -119,7 +119,7 @@ class Automato:
                         f'Nao foi possivel encontrar uma transicao '
                         f'para a letra \'{letra}\' na posicao \'{contador}\'. '
                         f'Estado atual: {origem.getNome()}.'))
-                    return (False, 'Erro léxico', contador)
+                    return (False, 'Erro Léxico', contador)
 
             destino = transicao.getDestino()
 
@@ -130,7 +130,7 @@ class Automato:
             origem = destino
 
         if not self.isFinalState(origem.getId()):
-            return (False, 'Erro léxico', contador)
+            return (False, 'Erro Léxico', contador)
         return (True, origem.getLabel(), contador)
 
     @staticmethod
