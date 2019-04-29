@@ -1,3 +1,6 @@
-if(a>b) {
-   oi;
+#include <stdio.h>
+
+int main() {
+
+   return 0;
 }

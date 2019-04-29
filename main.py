@@ -38,16 +38,18 @@ if __name__ == '__main__':
     # Faz a analise
     tokens, identificacores = analiseLexica(automato, arq_codigo, arq_palavras_reservadas)
 
-    # Coloca os identificadores numa tabela hash
-    for identificador in identificacores:
-        tabela_ids[identificador] = identificador
-    
-    # Printa a tabela hash no arquivo
-    with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
-        tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
+    if tokens is not None:
 
-    # Printa os tokens
-    with open(f'{argumentos.saida}_tokens.txt', 'w') as arquivo:
-        for token, classificacao in tokens:
-            print(f'Token: \'{token}\' Classificação: {classificacao}', file=arquivo)
+        # Coloca os identificadores numa tabela hash
+        for identificador in identificacores:
+            tabela_ids[identificador] = identificador
+
+        # Printa a tabela hash no arquivo
+        with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
+            tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
+
+        # Printa os tokens
+        with open(f'{argumentos.saida}_tokens.txt', 'w') as arquivo:
+            for token, classificacao in tokens:
+                print(f'Token: \'{token}\' Classificação: {classificacao}', file=arquivo)
 

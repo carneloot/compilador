@@ -101,7 +101,7 @@ class Automato:
             contador += 1
 
             if not self.checkIfInAlphabet(letra):
-                return (False, 'Not in alphabet', contador)
+                return (False, 'Caractere não está no alfabeto', contador)
 
             transicao = self.getTransition(origem.getId(), letra)
 
@@ -119,7 +119,7 @@ class Automato:
                         f'Nao foi possivel encontrar uma transicao '
                         f'para a letra \'{letra}\' na posicao \'{contador}\'. '
                         f'Estado atual: {origem.getNome()}.'))
-                    return (False, 'Erro', contador)
+                    return (False, 'Erro léxico', contador)
 
             destino = transicao.getDestino()
 
@@ -129,7 +129,9 @@ class Automato:
 
             origem = destino
 
-        return (self.isFinalState(origem.getId()), origem.getLabel(), contador)
+        if not self.isFinalState(origem.getId()):
+            return (False, 'Erro léxico', contador)
+        return (True, origem.getLabel(), contador)
 
     @staticmethod
     def checkSymbol(regex, symbol):
