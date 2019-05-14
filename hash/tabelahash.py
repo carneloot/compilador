@@ -46,9 +46,10 @@ class TabelaHash:
             return posicao
 
         else:
-            for item in self.__tabela[posicao]:
-                if item['chave'] == key:
-                    raise KeyError('Chave já existente')
+            # Foda-se se ja tem item com mesma chave na tabela
+            # for item in self.__tabela[posicao]:
+            #     if item['chave'] == key:
+            #         raise KeyError('Chave já existente')
 
             self.__tabela[posicao].append(item)
             return posicao

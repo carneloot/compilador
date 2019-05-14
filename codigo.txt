@@ -1,3 +1,0 @@
-if (azul > amarelo) {
-   faca_isso #
-}

@@ -16,7 +16,9 @@
 12;estado12;f;Simbolo especial
 13;estado13;f;Simbolo especial
 14;estado14;f;Simbolo especial
-15;estado15;;Simbolo especial underline
+15;estado15;
+16;estado16;f;Entrada Comentario
+17;estado17;f;Saida Comentario
 
 [Transitions]
 1;2;[a-zA-Z]
@@ -37,9 +39,9 @@
 1;11;>
 11;8;=
 1;12;\(
-12;8;\*
+12;16;\*
 1;13;\*
-13;8;\)
+13;17;\)
 1;14;[+-]
 14;4;[0-9]
 1;15;\_
