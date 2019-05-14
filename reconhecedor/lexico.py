@@ -8,6 +8,8 @@ def analiseLexica(automato: Automato, nome_arq_codigo: str, nome_arq_palavras_re
 
     palavras_reservadas = criar_palavras_reservadas(nome_arq_palavras_reservadas)
 
+    em_comentario = False
+
     with open(nome_arq_codigo, 'r') as arq:
         conteudo_arq = arq.read()
         conteudo_arq = conteudo_arq.split('\n')
@@ -20,7 +22,16 @@ def analiseLexica(automato: Automato, nome_arq_codigo: str, nome_arq_palavras_re
             if linha_correta is True:
                 tokens_info.pop(0)
                 for token_info in tokens_info:
-                    vetor_de_token_info.append(token_info)    
+
+                    if token_info[1] == 'Entrada Comentario':
+                        em_comentario = True
+
+                    if not em_comentario:
+                        vetor_de_token_info.append(token_info)    
+
+                    if token_info[1] == 'Saida Comentario':
+                        em_comentario = False
+
             else:
                 erro_resultado = tokens_info
                 print(f'./{nome_arq_codigo}:{qtd_linhas+1}:{erro_resultado[0]}: {erro_resultado[2]}. Depois do token "{erro_resultado[1]}"')
