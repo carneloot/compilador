@@ -17,8 +17,8 @@ def analiseLexica(automato: Automato, nome_arq_codigo: str, nome_arq_palavras_re
         while(qtd_linhas < len(conteudo_arq)):
             linha = conteudo_arq[qtd_linhas]
 
-            linha_correta, tokens_info = classificaTokens(automato, linha)
-            
+            linha_correta, tokens_info = classificaTokens(automato, linha, em_comentario)
+
             if linha_correta is True:
                 tokens_info.pop(0)
                 for token_info in tokens_info:
@@ -30,6 +30,9 @@ def analiseLexica(automato: Automato, nome_arq_codigo: str, nome_arq_palavras_re
                         vetor_de_token_info.append(token_info)    
 
                     if token_info[1] == 'Saida Comentario':
+                        if not em_comentario:
+                            vetor_de_token_info.append(token_info)    
+
                         em_comentario = False
 
             else:
@@ -74,22 +77,40 @@ def analiseLexica(automato: Automato, nome_arq_codigo: str, nome_arq_palavras_re
     return (vetor_de_token_info, vetor_identificadores)
 
 
-def classificaTokens(automato: Automato, entrada: str):
+def classificaTokens(automato: Automato, entrada: str, ehComentario):
     entrada += ' '
     coluna_atual = 0
 
     vetor_de_token_info = []
     vetor_de_token_info.append(('inicio', 'inicio'))
 
+    retorno = None
+
     tamanho_entrada = len(entrada)
     label_anterior = 'inicio'
     while len(entrada) > 1:
         saida, label, posicao = automato.test(entrada)
 
+        token = entrada[:posicao]
+        entrada = entrada[posicao:]
+
+        if label == 'Entrada Comentario':
+            ehComentario = True
+            vetor_de_token_info.append((token, label))
+
+        if label == 'Saida Comentario':
+            ehComentario = False
+
+        if not saida:
+            entrada = entrada[1:]
+
+        if ehComentario:
+            continue
+
         # Se o automato retornar falso, um erro foi encontrado:
         #   Parar a análise e avisar o problema
         if saida is False:
-            return (False, (coluna_atual + posicao, vetor_de_token_info[-1][0], label))
+                return (False, (coluna_atual + posicao, vetor_de_token_info[-1][0], label))
         else:
             # Ainda pode existir um erro:
             if (label_anterior == 'Inteiro') or (label_anterior == 'Real'):
@@ -97,8 +118,6 @@ def classificaTokens(automato: Automato, entrada: str):
                     vetor_de_token_info.pop()
                     return (False, (coluna_atual + posicao, vetor_de_token_info[-1][0], 'Erro Léxico'))
 
-            token = entrada[:posicao]
-            entrada = entrada[posicao:]
             # print(f'Label "{label}"')
             # print(f'Token "{token}" entrada "{entrada}"')
             # print(f'Token "{token}"')

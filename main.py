@@ -49,7 +49,7 @@ if __name__ == '__main__':
             tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
         
         # Printa a tabela hash no terminal
-        tabela_ids.print(print_none=not argumentos.skip_empty)
+        # tabela_ids.print(print_none=not argumentos.skip_empty)
 
         # Printa os tokens
         with open(f'{argumentos.saida}_tokens.txt', 'w') as arquivo:
