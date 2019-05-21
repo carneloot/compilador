@@ -37,6 +37,7 @@ if __name__ == '__main__':
 
     # Faz a analise
     tokens, identificacores = analiseLexica(automato, arq_codigo, arq_palavras_reservadas)
+    tokens = filter(lambda x: x[1] != 'Espaco', tokens)
 
     if tokens is not None:
 
