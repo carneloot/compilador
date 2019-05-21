@@ -14,7 +14,7 @@ def getArguments():
                         help='Arquivo para pegar as palavras reservadas. Padrão: reservadas.txt')
     
     parser.add_argument('--saida', '-s', action='store', dest='saida',
-                        required=True,
+                        default='saida', required=False,
                         help='Nome base para os arquivos de saida.')
 
     parser.add_argument('--pular-vazios', action='store_true', dest='skip_empty',
