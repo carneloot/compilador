@@ -1,0 +1,117 @@
+(* Programa e bloco *)
+progama = 'program', identificador, ';', bloco ;
+
+bloco =
+    [ parte declaracao rotulo ],
+    [ parte definicao tipo ],
+    [ parte declaracao variavel ],
+    [ parte declaracao sub rotinas ],
+    comando composto
+;
+
+(* Declaracoes *)
+parte declaracao rotulo = 'label', numero, { ',', numero } ;
+
+parte definicao tipo = 'type', definicao tipo, { ';', definicao tipo } ;
+
+definicao tipo = identificador, '=', tipo ;
+
+tipo = identificador | ( 'array', [ indice, { ',', indice } ], 'of', tipo ) ;
+
+indice = numero, '..', numero ;
+
+parte declaracao variavel = 'var', declaracao variavel, { ';', declaracao variavel } ;
+
+declaracao variavel = lista identificador, ':', tipo ;
+
+lista identificador = identificador, { ',', identificador } ;
+
+parte declaracao sub rotina =
+    {
+        ( declaracao procedimento, ';' ) |
+        ( declaracao funcao, ';' )
+    }
+;
+
+declaracao procedimento =
+    'procedure', identificador,
+        [ parametros formais ], ';', bloco
+;
+
+declaracao funcao =
+    'function', identificador
+        [ parametros formais ], ';', identificador, bloco
+;
+
+parametros formais =
+    '(', secao parametros formais,
+    { ';', secao parametros formais }, ')'
+;
+
+secao parametros formais =
+    ( [ 'var' ], lista identificador, ':', identificador ) |
+    ( 'function', lista identificador, ':', identificador ) |
+    ( 'procedure', lista identificador )
+;
+
+(* Comandos *)
+comando composto = 'begin', comando, { ';', comando }, 'end' ;
+
+comando = [ numero, ':' ], comando sem rotulo ;
+
+comando sem rotulo =
+    atribuicao |
+    chamada procedimento |
+    desvio |
+    comando composto |
+    comando condicional |
+    comando repetitivo
+;
+
+atribuicao = variavel, ':=', expressao ;
+
+chamada procedimento = identificador, [ '(', lista expressao, ')' ] ;
+
+comando condicional =
+    'if', expressao, 'then', comando sem rotulo,
+                    [ 'else', comando sem rotulo ]
+;
+
+comando repetitivo = 'while', expressao, 'do', comando sem rotulo ;
+
+(* Expressoes *)
+lista expressao = expressao, { ',', expressao } ;
+
+expressao = expressao simples, [ relacao, expressao simples ] ;
+
+relacao = '=' | '<>' | '<' | '<=' | '>=' | '>' ;
+
+expressao simples =
+    [ '+' | '-' ], termo,
+    { [ '+' | '-' | 'or' ], termo }
+;
+
+termo = fator, { [ '*' | 'div' | 'and' ], fator } ;
+
+fator =
+    variavel |
+    numero |
+    chamada funcao |
+    ( '(', expressao, ')' ) |
+    ( 'not', fator ) 
+;
+
+variavel = identificador, [ lista expressao ] ;
+
+chamada funcao = identificador, [ '(', lista expressao, ')' ] ;
+
+numero = digito, { digito } ;
+
+digito = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
+
+identificador = 
+    'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' |
+    'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' |
+    'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' |
+    'v' | 'w' | 'x' | 'y' | 'z'
+;
