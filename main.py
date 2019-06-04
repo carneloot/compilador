@@ -1,6 +1,7 @@
 import argparse
 from reconhecedor.automato import Automato
 from reconhecedor.lexico import analiseLexica
+from sintatico.sintatico import AnalisadorDescendente
 from hash.tabelahash import TabelaHash
 
 def getArguments():
@@ -12,7 +13,7 @@ def getArguments():
     parser.add_argument('--reservadas', '-r', action='store',
                         default='reservadas.txt', required=False,
                         help='Arquivo para pegar as palavras reservadas. Padrão: reservadas.txt')
-    
+
     parser.add_argument('--saida', '-s', action='store', dest='saida',
                         default='saida', required=False,
                         help='Nome base para os arquivos de saida.')
@@ -20,11 +21,11 @@ def getArguments():
     parser.add_argument('--pular-vazios', action='store_true', dest='skip_empty',
                         required=False,
                         help='Não escreve no arquivo da tabela hash os espaços vazios.')
-    
+
     parser.add_argument('entrada', action='store', help='Arquivo de entrada')
 
     return parser.parse_args()
-    
+
 if __name__ == '__main__':
 
     argumentos = getArguments()
@@ -36,24 +37,31 @@ if __name__ == '__main__':
     arq_palavras_reservadas = argumentos.reservadas
 
     # Faz a analise
-    tokens, identificacores = analiseLexica(automato, arq_codigo, arq_palavras_reservadas)
-    tokens = filter(lambda x: x[1] != 'Espaco', tokens)
+    tokensEspaco, identificacores = analiseLexica(automato, arq_codigo, arq_palavras_reservadas)
 
-    if tokens is not None:
+    if tokensEspaco is None:
+        exit(1)
 
-        # Coloca os identificadores numa tabela hash
-        for identificador in identificacores:
-            tabela_ids[identificador] = identificador
+    # Filtra os espaços do vetor
+    tokens = []
+    for item in tokensEspaco:
+        if item[1] != 'Espaco':
+            tokens.append(item)
 
-        # Printa a tabela hash no arquivo
-        with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
-            tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
-        
-        # Printa a tabela hash no terminal
-        # tabela_ids.print(print_none=not argumentos.skip_empty)
+    # Coloca os identificadores numa tabela hash
+    for identificador in identificacores:
+        tabela_ids[identificador] = identificador
 
-        # Printa os tokens
-        with open(f'{argumentos.saida}_tokens.txt', 'w') as arquivo:
-            for token, classificacao in tokens:
-                print(f'Token: \'{token}\' Classificação: {classificacao}', file=arquivo)
+    # Printa a tabela hash no arquivo
+    with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
+        tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
 
+    # Printa os tokens
+    with open(f'{argumentos.saida}_tokens.txt', 'w') as arquivo:
+        for token, classificacao in tokens:
+            print(f'Token: \'{token}\' Classificação: {classificacao}', file=arquivo)
+
+    # Analise sintatica
+    descendente = AnalisadorDescendente(tokens)
+
+    descendente.run()
