@@ -26,6 +26,9 @@ class AnalisadorDescendente():
     def run(self):
         self.program()
 
+    def erro(self):
+        print('Erro')
+
     # Funcoes de nao terminais
 
     @logFunc
@@ -40,10 +43,78 @@ class AnalisadorDescendente():
 
     @logFunc
     def identificador(self):
-        pass
+        if self.tokens[self.currentToken][1] == 'ID':
+            print(f'ID \'{self.tokens[self.currentToken][0]}\'')
+            self.currentToken += 1
+        else:
+            self.erro()
 
     @logFunc
     def bloco(self):
+        self.parteDeclaracaoVariavel()
+
+        self.parteDeclaracaoSubRotinas()
+
+        self.comandoComposto()
+
+    @logFunc
+    def parteDeclaracaoVariavel(self):
+        if self.lerTerminal('var'):
+
+            self.declaracaoVariavel()
+
+            # while self.lerTerminal(';'):
+            #     self.declaracaoVariavel()
+
+            self.lerTerminal(';')
+
+    @logFunc
+    def declaracaoVariavel(self):
+        self.listaIdentificador()
+
+        if self.lerTerminal(':'):
+            self.tipo()
+        else:
+            self.erro()
+
+    @logFunc
+    def listaIdentificador(self):
+        self.identificador()
+
+        while self.lerTerminal(','):
+            self.identificador()
+
+    @logFunc
+    def tipo(self):
+        if self.lerTerminal('array'):
+            self.indice()
+
+            while self.lerTerminal(','):
+                self.indice()
+
+            if self.lerTerminal('of'):
+                self.tipo()
+
+            else:
+                self.erro()
+
+        else:
+            self.identificador()
+
+    @logFunc
+    def indice(self):
+        self.numero()
+
+        if self.lerTerminal('..'):
+            self.numero()
+
+        else:
+            self.erro()
+
+    @logFunc
+    def parteDeclaracaoSubRotinas(self):
         pass
 
-
+    @logFunc
+    def comandoComposto(self):
+        pass
