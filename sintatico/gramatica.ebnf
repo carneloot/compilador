@@ -1,26 +1,18 @@
 (* Programa e bloco *)
-progama = 'program', identificador, ';', bloco ;
+progama = 'program', identificador, ';', bloco, '.' ;
 
 bloco =
-    [ parte declaracao rotulo ],
-    [ parte definicao tipo ],
     [ parte declaracao variavel ],
     [ parte declaracao sub rotinas ],
     comando composto
 ;
 
 (* Declaracoes *)
-parte declaracao rotulo = 'label', numero, { ',', numero } ;
-
-parte definicao tipo = 'type', definicao tipo, { ';', definicao tipo } ;
-
-definicao tipo = identificador, '=', tipo ;
-
 tipo = identificador | ( 'array', [ indice, { ',', indice } ], 'of', tipo ) ;
 
 indice = numero, '..', numero ;
 
-parte declaracao variavel = 'var', declaracao variavel, { ';', declaracao variavel } ;
+parte declaracao variavel = 'var', declaracao variavel, { ';', declaracao variavel }, ';' ;
 
 declaracao variavel = lista identificador, ':', tipo ;
 

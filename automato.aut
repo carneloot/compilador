@@ -1,5 +1,5 @@
 [Automata]
-[a-zA-Z0-9 \n()[\]{}:*\-=_+<>.,;/]
+[a-zA-Z0-9 \n()[\]{}:\'*\-=_+<>.,;/]
 
 [States]
 1;estado1;i
@@ -16,9 +16,11 @@
 12;estado12;f;Simbolo especial
 13;estado13;f;Simbolo especial
 14;estado14;f;Simbolo especial
-15;estado15;
+15;estado15
 16;estado16;f;Entrada Comentario
 17;estado17;f;Saida Comentario
+18;estado18
+19;estado19;f;String
 
 [Transitions]
 1;2;[a-zA-Z]
@@ -29,7 +31,7 @@
 4;4;[0-9]
 4;5;\.
 5;5;[0-9]
-1;6;[\',;\)=/\[\]\{\}]
+1;6;[,;\)=/\[\]\{\}]
 1;7;:
 7;8;=
 1;9;\.
@@ -45,3 +47,6 @@
 1;14;[+-]
 14;4;[0-9]
 1;15;\_
+1;18;'
+18;18;[a-zA-Z0-9 \n()[\]{}:*\-=_+<>.,;/]
+18;19;'

@@ -2,7 +2,9 @@ program exemplo6;
     var abc: integer;
     function f(mm,n: integer; function h: integer; var x: integer):integer;
         var s,i:integer;
+        var a: string;
     begin
+        a:='Ola mundo';
         i:=m; s:=a;
         while i<=n
         do begin
