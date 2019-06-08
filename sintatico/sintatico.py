@@ -113,8 +113,77 @@ class AnalisadorDescendente():
 
     @logFunc
     def parteDeclaracaoSubRotinas(self):
-        pass
+        if self.getToken() == 'procedure':
+            self.match('procedure')
+
+            self.parteDeclaracaoProcedimento()
+
+        elif self.getToken() == 'function':
+            self.match('function')
+
+            self.parteDeclaracaoFuncao()
+
+        if self.getToken() == ';':
+            self.match(';')    
+            self.bloco() 
+
+        self.match(';')
+
+    @logFunc
+    def parteDeclaracaoProcedimento(self):
+        self.identificador()
+
+            if not self.getToken() == ';':
+                self.match(';')
+
+                self.parametrosFormais()
+    @logFunc
+    def parteDeclaracaoFuncao(self):
+        self.identificador()
+
+            if not self.getToken() == ':':
+                self.match(':')
+
+                self.parametrosFormais()
+
+            self.identificador()
 
     @logFunc
     def comandoComposto(self):
-        pass
+        self.match('begin')
+
+        self.comando()
+
+        while self.getToken(';') == ';':
+            self.match(';')
+            self.comando()
+
+        self.match('end')
+
+    @logFunc
+    def parametrosFormais(self):
+        self.match('(')
+        
+        if self.getToken('var') == 'var':
+            self.match('var')
+
+        self.identificador()
+
+        while self.getToken(',') == ',':
+            self.match(',')
+            self.identificador()
+
+        self.match(':')
+
+        self.identificador()
+
+        self.match(')')
+
+    @logFunc
+    def comando(self):
+        if self.tipoAtual() == 'Real' or self.tipoAtual() == 'Inteiro':
+            self.numero()
+
+            self.match(':')
+        
+        self.comandoSemRotulo()
