@@ -16,38 +16,51 @@ class AnalisadorDescendente():
         self.tokens = tokens
         self.currentToken = 0
 
-    def lerTerminal(self, terminal):
-        if self.tokens[self.currentToken][0] == terminal:
-            self.currentToken += 1
+    def match(self, terminal):
+        if self.tokenAtual() == terminal:
             print(f'Li "{terminal}"')
-            return True
-        return False
+        else:
+            raise SyntaxError(f'Token esperado: \'{terminal}\'. Token lido: \'{self.tokenAtual()}\'')
+
+        self.proximoToken()
+
+    def tokenAtual(self):
+        return self.tokens[self.currentToken][0]
+
+    def proximoToken(self):
+        self.currentToken += 1
+
+    def matchTipo(self, tipo):
+        if self.tipoAtual() == tipo:
+            print(f'{tipo} \'{self.tokenAtual()}\'')
+        else:
+            raise SyntaxError(f'Tipo esperado: \'{tipo}\'. Tipo lido: \'{self.tipoAtual()}\'')
+
+        self.proximoToken()
+
+    def tipoAtual(self):
+        return self.tokens[self.currentToken][1]
 
     def run(self):
         self.program()
-
-    def erro(self):
-        print('Erro')
 
     # Funcoes de nao terminais
 
     @logFunc
     def program(self):
 
-        if self.lerTerminal('program'):
+        if self.tokenAtual() == 'program':
+            self.match('program')
+
             self.identificador()
 
-            self.lerTerminal(';')
+            self.match(';')
 
             self.bloco()
 
     @logFunc
     def identificador(self):
-        if self.tokens[self.currentToken][1] == 'ID':
-            print(f'ID \'{self.tokens[self.currentToken][0]}\'')
-            self.currentToken += 1
-        else:
-            self.erro()
+        self.matchTipo('ID')
 
     @logFunc
     def bloco(self):
@@ -59,58 +72,44 @@ class AnalisadorDescendente():
 
     @logFunc
     def parteDeclaracaoVariavel(self):
-        if self.lerTerminal('var'):
+        if self.tokenAtual() == 'var':
+            self.match('var')
 
             self.declaracaoVariavel()
 
             # while self.lerTerminal(';'):
             #     self.declaracaoVariavel()
 
-            self.lerTerminal(';')
+            self.match(';')
 
     @logFunc
     def declaracaoVariavel(self):
         self.listaIdentificador()
 
-        if self.lerTerminal(':'):
-            self.tipo()
-        else:
-            self.erro()
+        self.match(':')
+
+        self.tipo()
 
     @logFunc
     def listaIdentificador(self):
         self.identificador()
 
-        while self.lerTerminal(','):
+        while self.tokenAtual() == ',':
+            self.match(',')
             self.identificador()
 
     @logFunc
     def tipo(self):
-        if self.lerTerminal('array'):
-            self.indice()
-
-            while self.lerTerminal(','):
-                self.indice()
-
-            if self.lerTerminal('of'):
-                self.tipo()
-
-            else:
-                self.erro()
-
-        else:
-            self.identificador()
+        self.identificador()
 
     @logFunc
     def indice(self):
         self.numero()
 
-        if self.lerTerminal('..'):
-            self.numero()
+        self.match('..')
 
-        else:
-            self.erro()
-
+        self.numero()
+        
     @logFunc
     def parteDeclaracaoSubRotinas(self):
         pass
@@ -220,4 +219,5 @@ class AnalisadorDescendente():
 
         self.match('not')
         self.fator()
+        
         
