@@ -66,7 +66,8 @@ class AnalisadorDescendente():
     def bloco(self):
         self.parteDeclaracaoVariavel()
 
-        self.parteDeclaracaoSubRotinas()
+        while self.getToken() == "procedure" or self.getToken() == "function":
+            self.parteDeclaracaoSubRotinas()
 
         self.comandoComposto()
 
@@ -112,11 +113,40 @@ class AnalisadorDescendente():
         
     @logFunc
     def parteDeclaracaoSubRotinas(self):
-        pass
+        if self.getToken() == 'procedure':
+            self.match('procedure')
+
+            self.parteDeclaracaoProcedimento()
+
+        elif self.getToken() == 'function':
+            self.match('function')
+
+            self.parteDeclaracaoFuncao()
+
+        if self.getToken() == ';':
+            self.match(';')    
+            self.bloco() 
+
+        self.match(';')
 
     @logFunc
-    def comandoComposto(self):
-        pass
+    def parteDeclaracaoProcedimento(self):
+        self.identificador()
+
+            if not self.getToken() == ';':
+                self.match(';')
+
+                self.parametrosFormais()
+    @logFunc
+    def parteDeclaracaoFuncao(self):
+        self.identificador()
+
+            if not self.getToken() == ':':
+                self.match(':')
+
+                self.parametrosFormais()
+
+            self.identificador()
 
     @logFunc
     def expressao(self):
@@ -207,7 +237,6 @@ class AnalisadorDescendente():
                     self.expressao()
                 self.match(')')
 
-
         elif self.tipoAtual() == 'Real' or self.tipoAtual() == 'Inteiro':
             self.numero()
         
@@ -219,5 +248,44 @@ class AnalisadorDescendente():
 
         self.match('not')
         self.fator()
+
+
+    @logFunc
+    def comandoComposto(self):
+        self.match('begin')
+
+        self.comando()
+
+        while self.getToken(';') == ';':
+            self.match(';')
+            self.comando()
+
+        self.match('end')
+
+    @logFunc
+    def parametrosFormais(self):
+        self.match('(')
         
+        if self.getToken('var') == 'var':
+            self.match('var')
+
+        self.identificador()
+
+        while self.getToken(',') == ',':
+            self.match(',')
+            self.identificador()
+
+        self.match(':')
+
+        self.identificador()
+
+        self.match(')')
+
+    @logFunc
+    def comando(self):
+        if self.tipoAtual() == 'Real' or self.tipoAtual() == 'Inteiro':
+            self.numero()
+
+            self.match(':')
         
+        self.comandoSemRotulo()
