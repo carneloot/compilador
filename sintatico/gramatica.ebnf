@@ -8,9 +8,7 @@ bloco =
 ;
 
 (* Declaracoes *)
-tipo = identificador | ( 'array', [ indice, { ',', indice } ], 'of', tipo ) ;
-
-indice = numero, '..', numero ;
+tipo = identificador ;
 
 parte declaracao variavel = 'var', declaracao variavel, { ';', declaracao variavel }, ';' ;
 
@@ -41,23 +39,22 @@ parametros formais =
 ;
 
 secao parametros formais =
-    ( [ 'var' ], lista identificador, ':', identificador ) |
-    ( 'function', lista identificador, ':', identificador ) |
-    ( 'procedure', lista identificador )
+    ( [ 'var' ], lista identificador, ':', identificador )
 ;
 
 (* Comandos *)
 comando composto = 'begin', comando, { ';', comando }, 'end' ;
 
-comando = [ numero, ':' ], comando sem rotulo ;
+comando = comando sem rotulo ;
 
 comando sem rotulo =
     atribuicao |
     chamada procedimento |
-    desvio |
     comando composto |
     comando condicional |
-    comando repetitivo
+    comando repetitivo |
+    funcao read |
+    funcao write
 ;
 
 atribuicao = variavel, ':=', expressao ;
@@ -71,6 +68,10 @@ comando condicional =
 
 comando repetitivo = 'while', expressao, 'do', comando sem rotulo ;
 
+funcao read = 'read', '(', identificador, ')' ;
+
+funcao write = 'write', '(', lista expressao, ')' ;
+
 (* Expressoes *)
 lista expressao = expressao, { ',', expressao } ;
 
@@ -83,27 +84,16 @@ expressao simples =
     { [ '+' | '-' | 'or' ], termo }
 ;
 
-termo = fator, { [ '*' | 'div' | 'and' ], fator } ;
+termo = fator, { '*' | 'div' | 'and', fator } ;
 
 fator =
     variavel |
     numero |
     chamada funcao |
     ( '(', expressao, ')' ) |
-    ( 'not', fator ) 
+    ( 'not', fator )
 ;
 
-variavel = identificador, [ lista expressao ] ;
+variavel = identificador ;
 
 chamada funcao = identificador, [ '(', lista expressao, ')' ] ;
-
-numero = digito, { digito } ;
-
-digito = '0' | '1' | '2' | '3' | '4' | '5' | '6' | '7' | '8' | '9' ;
-
-identificador = 
-    'a' | 'b' | 'c' | 'd' | 'e' | 'f' | 'g' |
-    'h' | 'i' | 'j' | 'k' | 'l' | 'm' | 'n' |
-    'o' | 'p' | 'q' | 'r' | 's' | 't' | 'u' |
-    'v' | 'w' | 'x' | 'y' | 'z'
-;
