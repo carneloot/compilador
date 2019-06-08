@@ -53,7 +53,8 @@ class AnalisadorDescendente():
     def bloco(self):
         self.parteDeclaracaoVariavel()
 
-        self.parteDeclaracaoSubRotinas()
+        while self.getToken() == "procedure" or self.getToken() == "function":
+            self.parteDeclaracaoSubRotinas()
 
         self.comandoComposto()
 
