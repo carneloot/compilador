@@ -118,3 +118,106 @@ class AnalisadorDescendente():
     @logFunc
     def comandoComposto(self):
         pass
+
+    @logFunc
+    def expressao(self):
+        self.expressaoSimples()
+        if self.tokenAtual() == '=':
+            self.match('=')
+            self.expressaoSimples()
+
+        elif self.tokenAtual() == '<>':
+            self.match('<>')
+            self.expressaoSimples()
+
+        elif self.tokenAtual() == '<':
+            self.match('<')
+            self.expressaoSimples()
+
+        elif self.tokenAtual() == '<=':
+            self.match('<=')
+            self.expressaoSimples()
+        
+        elif self.tokenAtual() == '>=':
+            self.match('>=')
+            self.expressaoSimples()
+        
+        elif self.tokenAtual() == '>':
+            self.match('>')
+            self.expressaoSimples()
+    
+    @logFunc
+    def expressaoSimples(self):
+        
+        if self.tokenAtual() == '+':
+            self.match('+')
+        elif self.tokenAtual() == '-':
+            self.match('-')
+        
+        self.termo()
+
+        if self.tokenAtual() == '+':
+            self.match('+')
+            self.expressao_simples()
+        elif self.tokenAtual() == '-':
+            self.match('-')
+            self.expressao_simples()
+        elif self.tokenAtual() == 'or':
+            self.match('or')
+            self.expressao_simples()
+
+    @logFunc
+    def termo(self):
+        self.fator()
+
+        if self.tokenAtual() == '*':
+            self.match('*')
+            self.termo()
+
+        elif self.tokenAtual() == 'div':
+            self.match('div')
+            self.termo()
+
+        elif self.tokenAtual() == 'and':
+            self.match('and')
+            self.termo()
+    
+    @logFunc
+    def fator():
+
+        if self.tipoAtual() == 'ID/Reservada':
+            self.identificador()
+            # Duas coisas podem acontecer
+            # Colchetes
+            if self.tokenAtual() == '[':
+                self.match('[')
+                self.expressao()
+
+                while self.tokenAtual() == ',':
+                    self.match(',')
+                    self.expressao()
+                self.match(']')
+
+            # Parênteses
+            elif self.tokenAtual() == '(':
+                self.match('(')
+                self.expressao()
+
+                while self.tokenAtual() == ',':
+                    self.match(',')
+                    self.expressao()
+                self.match(')')
+
+
+        elif self.tipoAtual() == 'Real' or self.tipoAtual() == 'Inteiro':
+            self.numero()
+        
+        elif self.tokenAtual() == '(':
+            self.match('(')
+            self.expressao()
+            self.match(')')
+
+
+        self.match('not')
+        self.fator()
+        
