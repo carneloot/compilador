@@ -57,7 +57,7 @@ comando sem rotulo =
     funcao write
 ;
 
-atribuicao = variavel, ':=', expressao ;
+atribuicao = identificador, ':=', expressao ;
 
 chamada procedimento = identificador, [ '(', lista expressao, ')' ] ;
 
@@ -87,13 +87,11 @@ expressao simples =
 termo = fator, { '*' | 'div' | 'and', fator } ;
 
 fator =
-    variavel |
+    identificador |
     numero |
     chamada funcao |
     ( '(', expressao, ')' ) |
     ( 'not', fator )
 ;
-
-variavel = identificador ;
 
 chamada funcao = identificador, [ '(', lista expressao, ')' ] ;

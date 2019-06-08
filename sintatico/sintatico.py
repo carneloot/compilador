@@ -109,3 +109,96 @@ class AnalisadorDescendente():
         self.match('..')
 
         self.numero()
+
+    @logFunc
+    def comandoSemRotulo(self):
+        if self.tokenAtual() == 'if':
+            self.comandoCondicional()
+
+        elif self.tokenAtual() == 'while':
+            self.comandoRepetitivo()
+
+        elif self.tokenAtual() == 'read':
+            self.funcaoRead()
+
+        elif self.tokenAtual() == 'write':
+            self.funcaoWrite()
+
+        elif self.tokenAtual() == 'begin':
+            self.comandoComposto()
+
+        else:
+            self.identificador()
+
+            if self.tokenAtual() == ':=':
+                self.atribuicao()
+            else:
+                self.chamadaProcedimento()
+
+    @logFunc
+    def comandoCondicional(self):
+        self.match('if')
+
+        self.expressao()
+
+        self.match('then')
+
+        self.comandoSemRotulo()
+
+        if self.tokenAtual() == 'else':
+            self.match('else')
+
+            self.comandoSemRotulo()
+
+    @logFunc
+    def comandoRepetitivo(self):
+        self.match('while')
+
+        self.expressao()
+
+        self.match('do')
+
+        self.comandoSemRotulo()
+
+    @logFunc
+    def funcaoRead(self):
+        self.match('read')
+
+        self.match('(')
+
+        self.identificador()
+
+        self.match(')')
+
+    @logFunc
+    def funcaoWrite(self):
+        self.match('write')
+
+        self.match('(')
+
+        self.listaExpressao()
+
+        self.match(')')
+
+    @logFunc
+    def atribuicao(self):
+        self.match(':=')
+
+        self.expressao()
+
+    @logFunc
+    def chamadaProcedimento(self):
+        if self.tokenAtual() == '(':
+            self.match('(')
+
+            self.listaExpressao()
+
+            self.match('(')
+
+    @logFunc
+    def listaExpressao(self):
+        self.expressao()
+
+        while self.tokenAtual() == ',':
+            self.match(',')
+            self.expressao()
