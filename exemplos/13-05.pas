@@ -5,10 +5,10 @@ PROGRAM exemplo;
     VAR p, q: INTEGER;
     BEGIN
         IF n < k THEN BEGIN f := n; k := 0 END
-                ELSE BEGIN f := f(n - 1, p) + f(n - 2, q); k := p + q + 1 END
+                ELSE BEGIN f := f(n - 1, p) + f(n - 2, q); k := p + q + 1 END;
 
         WRITE(n, k)
-    END (* f *)
+    END; (* f *)
 BEGIN
-    WRITE(f(3, m), m)
+    WRITE(f(3, m), m);
 END

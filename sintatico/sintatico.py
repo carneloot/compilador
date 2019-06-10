@@ -1,10 +1,16 @@
+TAB_NUM = 0
+
 def logFunc(function):
     def wrapper(self):
-        print(f'Enter <{function.__name__}>')
+        global TAB_NUM
+        tabs = '\t' * TAB_NUM
+        print(f'{tabs}Enter <{function.__name__}>')
+        TAB_NUM += 1
 
         resultado = function(self)
 
-        print(f'Exit <{function.__name__}>')
+        TAB_NUM -= 1
+        print(f'{tabs}Exit <{function.__name__}>')
 
         return resultado
 
@@ -17,8 +23,10 @@ class AnalisadorDescendente():
         self.currentToken = 0
 
     def match(self, terminal):
+        global TAB_NUM
         if self.tokenAtual() == terminal:
-            print(f'Li "{terminal}"')
+            tabs = '\t' * TAB_NUM
+            print(f'{tabs}Li "{terminal}"')
         else:
             raise SyntaxError(f'Token esperado: \'{terminal}\'. Token lido: \'{self.tokenAtual()}\'')
 
@@ -31,8 +39,10 @@ class AnalisadorDescendente():
         self.currentToken += 1
 
     def matchTipo(self, tipo):
+        global TAB_NUM
         if self.tipoAtual() == tipo:
-            print(f'{tipo} \'{self.tokenAtual()}\'')
+            tabs = '\t' * TAB_NUM
+            print(f'{tabs}{tipo} \'{self.tokenAtual()}\'')
         else:
             raise SyntaxError(f'Tipo esperado: \'{tipo}\'. Tipo lido: \'{self.tipoAtual()}\'')
 
