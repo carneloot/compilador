@@ -5,8 +5,8 @@
 1;estado1;i
 2;estado2;f;ID/Reservada
 3;estado3;f;Espaco
-4;estado4;f;Inteiro
-5;estado5;f;Real
+4;estado4;f;Numero
+5;estado5;f;Numero
 6;estado6;f;Simbolo especial
 7;estado7;f;Simbolo especial
 8;estado8;f;Simbolo Composto

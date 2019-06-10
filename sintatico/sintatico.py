@@ -63,10 +63,14 @@ class AnalisadorDescendente():
         self.matchTipo('ID')
 
     @logFunc
+    def numero(self):
+        self.matchTipo('Numero')
+
+    @logFunc
     def bloco(self):
         self.parteDeclaracaoVariavel()
 
-        while self.getToken() == "procedure" or self.getToken() == "function":
+        while self.tokenAtual() == "procedure" or self.tokenAtual() == "function":
             self.parteDeclaracaoSubRotinas()
 
         self.comandoComposto()
@@ -110,22 +114,18 @@ class AnalisadorDescendente():
         self.match('..')
 
         self.numero()
-        
+
     @logFunc
     def parteDeclaracaoSubRotinas(self):
-        if self.getToken() == 'procedure':
+        if self.tokenAtual() == 'procedure':
             self.match('procedure')
 
             self.parteDeclaracaoProcedimento()
 
-        elif self.getToken() == 'function':
+        elif self.tokenAtual() == 'function':
             self.match('function')
 
             self.parteDeclaracaoFuncao()
-
-        if self.getToken() == ';':
-            self.match(';')    
-            self.bloco() 
 
         self.match(';')
 
@@ -133,20 +133,29 @@ class AnalisadorDescendente():
     def parteDeclaracaoProcedimento(self):
         self.identificador()
 
-            if not self.getToken() == ';':
-                self.match(';')
+        if self.tokenAtual() == '(':
+            self.match('(')
 
-                self.parametrosFormais()
+            self.parametrosFormais()
+
+        self.match(';')
+
+        self.bloco()
+
     @logFunc
     def parteDeclaracaoFuncao(self):
         self.identificador()
 
-            if not self.getToken() == ':':
-                self.match(':')
+        if self.tokenAtual() == '(':
+            self.parametrosFormais()
 
-                self.parametrosFormais()
+        self.match(':')
 
-            self.identificador()
+        self.identificador()
+
+        self.match(';')
+
+        self.bloco()
 
     @logFunc
     def expressao(self):
@@ -166,34 +175,34 @@ class AnalisadorDescendente():
         elif self.tokenAtual() == '<=':
             self.match('<=')
             self.expressaoSimples()
-        
+
         elif self.tokenAtual() == '>=':
             self.match('>=')
             self.expressaoSimples()
-        
+
         elif self.tokenAtual() == '>':
             self.match('>')
             self.expressaoSimples()
-    
+
     @logFunc
     def expressaoSimples(self):
-        
+
         if self.tokenAtual() == '+':
             self.match('+')
         elif self.tokenAtual() == '-':
             self.match('-')
-        
+
         self.termo()
 
         if self.tokenAtual() == '+':
             self.match('+')
-            self.expressao_simples()
+            self.expressaoSimples()
         elif self.tokenAtual() == '-':
             self.match('-')
-            self.expressao_simples()
+            self.expressaoSimples()
         elif self.tokenAtual() == 'or':
             self.match('or')
-            self.expressao_simples()
+            self.expressaoSimples()
 
     @logFunc
     def termo(self):
@@ -210,11 +219,11 @@ class AnalisadorDescendente():
         elif self.tokenAtual() == 'and':
             self.match('and')
             self.termo()
-    
-    @logFunc
-    def fator():
 
-        if self.tipoAtual() == 'ID/Reservada':
+    @logFunc
+    def fator(self):
+
+        if self.tipoAtual() == 'ID':
             self.identificador()
             # Duas coisas podem acontecer
             # Colchetes
@@ -237,18 +246,16 @@ class AnalisadorDescendente():
                     self.expressao()
                 self.match(')')
 
-        elif self.tipoAtual() == 'Real' or self.tipoAtual() == 'Inteiro':
+        elif self.tipoAtual() == 'Numero':
             self.numero()
-        
+
         elif self.tokenAtual() == '(':
             self.match('(')
             self.expressao()
             self.match(')')
-
-
-        self.match('not')
-        self.fator()
-
+        else:
+            self.match('not')
+            self.fator()
 
     @logFunc
     def comandoComposto(self):
@@ -256,7 +263,7 @@ class AnalisadorDescendente():
 
         self.comando()
 
-        while self.getToken(';') == ';':
+        while self.tokenAtual() == ';':
             self.match(';')
             self.comando()
 
@@ -265,27 +272,120 @@ class AnalisadorDescendente():
     @logFunc
     def parametrosFormais(self):
         self.match('(')
-        
-        if self.getToken('var') == 'var':
+
+        self.secaoParametrosFormais()
+
+        while self.tokenAtual() == ';':
+            self.match(';')
+
+            self.secaoParametrosFormais()
+
+        self.match(')')
+
+    @logFunc
+    def secaoParametrosFormais(self):
+        if self.tokenAtual() == 'var':
             self.match('var')
+
+        self.listaIdentificador()
+
+        self.match(':')
 
         self.identificador()
 
-        while self.getToken(',') == ',':
-            self.match(',')
+    @logFunc
+    def comando(self):
+        self.comandoSemRotulo()
+
+    @logFunc
+    def comandoSemRotulo(self):
+        if self.tokenAtual() == 'if':
+            self.comandoCondicional()
+
+        elif self.tokenAtual() == 'while':
+            self.comandoRepetitivo()
+
+        elif self.tokenAtual() == 'read':
+            self.funcaoRead()
+
+        elif self.tokenAtual() == 'write':
+            self.funcaoWrite()
+
+        elif self.tokenAtual() == 'begin':
+            self.comandoComposto()
+
+        else:
             self.identificador()
 
-        self.match(':')
+            if self.tokenAtual() == ':=':
+                self.atribuicao()
+            else:
+                self.chamadaProcedimento()
+
+    @logFunc
+    def comandoCondicional(self):
+        self.match('if')
+
+        self.expressao()
+
+        self.match('then')
+
+        self.comandoSemRotulo()
+
+        if self.tokenAtual() == 'else':
+            self.match('else')
+
+            self.comandoSemRotulo()
+
+    @logFunc
+    def comandoRepetitivo(self):
+        self.match('while')
+
+        self.expressao()
+
+        self.match('do')
+
+        self.comandoSemRotulo()
+
+    @logFunc
+    def funcaoRead(self):
+        self.match('read')
+
+        self.match('(')
 
         self.identificador()
 
         self.match(')')
 
     @logFunc
-    def comando(self):
-        if self.tipoAtual() == 'Real' or self.tipoAtual() == 'Inteiro':
-            self.numero()
+    def funcaoWrite(self):
+        self.match('write')
 
-            self.match(':')
-        
-        self.comandoSemRotulo()
+        self.match('(')
+
+        self.listaExpressao()
+
+        self.match(')')
+
+    @logFunc
+    def atribuicao(self):
+        self.match(':=')
+
+        self.expressao()
+
+    @logFunc
+    def chamadaProcedimento(self):
+        if self.tokenAtual() == '(':
+            self.match('(')
+
+            self.listaExpressao()
+
+            self.match('(')
+
+    @logFunc
+    def listaExpressao(self):
+        self.expressao()
+
+        while self.tokenAtual() == ',':
+            self.match(',')
+            self.expressao()

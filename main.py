@@ -46,7 +46,8 @@ if __name__ == '__main__':
     tokens = []
     for item in tokensEspaco:
         if item[1] != 'Espaco':
-            tokens.append(item)
+            newItem = (item[0].lower(), item[1])
+            tokens.append(newItem)
 
     # Coloca os identificadores numa tabela hash
     for identificador in identificacores:
