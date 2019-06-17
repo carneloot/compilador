@@ -27,11 +27,11 @@ def analiseLexica(automato: Automato, nome_arq_codigo: str, nome_arq_palavras_re
                         em_comentario = True
 
                     if not em_comentario:
-                        vetor_de_token_info.append(token_info)    
+                        vetor_de_token_info.append(token_info)
 
                     if token_info[1] == 'Saida Comentario':
                         if not em_comentario:
-                            vetor_de_token_info.append(token_info)    
+                            vetor_de_token_info.append(token_info)
 
                         em_comentario = False
 
@@ -41,8 +41,8 @@ def analiseLexica(automato: Automato, nome_arq_codigo: str, nome_arq_palavras_re
                 return None, None
 
             qtd_linhas += 1
-    vetor_de_token_info.pop()
-    
+    # vetor_de_token_info.pop()
+
     vetor_identificadores = []
 
     contador = 0

@@ -10,5 +10,5 @@ PROGRAM exemplo;
         WRITE(n, k)
     END; (* f *)
 BEGIN
-    WRITE(f(3, m), m);
-END
+    WRITE(f(3, m), m)
+END.

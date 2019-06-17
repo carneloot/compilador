@@ -1,8 +1,8 @@
 program exemplo6;
     var abc: integer;
-    function f(mm,n: integer; function h: integer; var x: integer):integer;
+    function f(mm,n: integer; h: integer; var x: integer):integer;
         var s,i:integer;
-        var a: string;
+            a: string;
     begin
         a:='Ola mundo';
         i:=m; s:=a;
@@ -21,8 +21,8 @@ program exemplo6;
             begin k2:=k1(k1(x)) end(*k2*);
     begin
         write(f(1,3,k1,a), a);
-        write(f(1,2,k2,b), b);
-    end (* g *)
+        write(f(1,2,k2,b), b)
+    end (* g *);
 begin
-    abc:=0;
+    abc:=0
 end.

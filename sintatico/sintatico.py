@@ -68,6 +68,8 @@ class AnalisadorDescendente():
 
             self.bloco()
 
+            self.match('.')
+
     @logFunc
     def identificador(self):
         self.matchTipo('ID')
@@ -75,6 +77,14 @@ class AnalisadorDescendente():
     @logFunc
     def numero(self):
         self.matchTipo('Numero')
+
+    @logFunc
+    def reservada(self):
+        self.matchTipo('Reservada')
+
+    @logFunc
+    def string(self):
+        self.matchTipo('String')
 
     @logFunc
     def bloco(self):
@@ -92,10 +102,10 @@ class AnalisadorDescendente():
 
             self.declaracaoVariavel()
 
-            # while self.lerTerminal(';'):
-            #     self.declaracaoVariavel()
+            while self.tipoAtual() == 'ID' \
+                and self.tokenAtual() != 'function' and self.tokenAtual() != 'procedure':
+                self.declaracaoVariavel()
 
-            self.match(';')
 
     @logFunc
     def declaracaoVariavel(self):
@@ -104,6 +114,8 @@ class AnalisadorDescendente():
         self.match(':')
 
         self.tipo()
+
+        self.match(';')
 
     @logFunc
     def listaIdentificador(self):
@@ -115,7 +127,10 @@ class AnalisadorDescendente():
 
     @logFunc
     def tipo(self):
-        self.identificador()
+        if self.tipoAtual() == 'ID':
+            self.identificador()
+        elif self.tipoAtual() == 'Reservada':
+            self.reservada()
 
     @logFunc
     def indice(self):
@@ -128,19 +143,17 @@ class AnalisadorDescendente():
     @logFunc
     def parteDeclaracaoSubRotinas(self):
         if self.tokenAtual() == 'procedure':
-            self.match('procedure')
-
             self.parteDeclaracaoProcedimento()
 
         elif self.tokenAtual() == 'function':
-            self.match('function')
-
             self.parteDeclaracaoFuncao()
 
         self.match(';')
 
     @logFunc
     def parteDeclaracaoProcedimento(self):
+        self.match('procedure')
+
         self.identificador()
 
         if self.tokenAtual() == '(':
@@ -154,6 +167,8 @@ class AnalisadorDescendente():
 
     @logFunc
     def parteDeclaracaoFuncao(self):
+        self.match('function')
+
         self.identificador()
 
         if self.tokenAtual() == '(':
@@ -258,6 +273,9 @@ class AnalisadorDescendente():
 
         elif self.tipoAtual() == 'Numero':
             self.numero()
+
+        elif self.tipoAtual() == 'String':
+            self.string()
 
         elif self.tokenAtual() == '(':
             self.match('(')
