@@ -39,7 +39,9 @@ parametros formais =
 ;
 
 secao parametros formais =
-    ( [ 'var' ], lista identificador, ':', identificador )
+    ( [ 'var' ], lista identificador, ':', identificador ) |
+    ( 'function', lista identificador, ':', identificador ) |
+    ( 'procedure', lista identificador )
 ;
 
 (* Comandos *)
