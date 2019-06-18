@@ -1,8 +1,8 @@
 import argparse
-from reconhecedor.automato import Automato
-from reconhecedor.lexico import analiseLexica
-from sintatico.sintatico import AnalisadorDescendente
-from hash.tabelahash import TabelaHash
+from modules.automato import Automato
+from modules.lexico import analiseLexica
+from modules.sintatico import AnalisadorDescendente
+from modules.tabelahash import TabelaHash
 
 def getArguments():
     parser = argparse.ArgumentParser(description='Compilador de PASCAL da disciplina de compiladores.')
@@ -27,7 +27,6 @@ def getArguments():
     return parser.parse_args()
 
 if __name__ == '__main__':
-
     argumentos = getArguments()
 
     automato = Automato.fromFile(argumentos.automato)
