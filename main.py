@@ -44,13 +44,13 @@ if __name__ == '__main__':
     # Filtra os espaços do vetor
     tokens = []
     for item in tokensEspaco:
-        if item[1] != 'Espaco':
-            newItem = (item[0].lower(), item[1])
-            tokens.append(newItem)
+        if item.tipo != 'Espaco':
+            item.token = item.token.lower()
+            tokens.append(item)
 
     # Coloca os identificadores numa tabela hash
     for identificador in identificacores:
-        tabela_ids[identificador] = identificador
+        tabela_ids[identificador.token] = str(identificador)
 
     # Printa a tabela hash no arquivo
     with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
@@ -58,10 +58,10 @@ if __name__ == '__main__':
 
     # Printa os tokens
     with open(f'{argumentos.saida}_tokens.txt', 'w') as arquivo:
-        for token, classificacao in tokens:
-            print(f'Token: \'{token}\' Classificação: {classificacao}', file=arquivo)
+        for tokenInfo in tokens:
+            print(f'Token: \'{tokenInfo.token}\' Classificação: {tokenInfo.tipo}', file=arquivo)
 
     # Analise sintatica
-    descendente = AnalisadorDescendente(tokens)
+    descendente = AnalisadorDescendente(tokens, arq_codigo)
 
     descendente.run()

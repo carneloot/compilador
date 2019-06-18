@@ -18,8 +18,9 @@ def logFunc(function):
 
 class AnalisadorDescendente():
 
-    def __init__(self, tokens):
+    def __init__(self, tokens, arqCodigo):
         self.tokens = tokens
+        self.arqCodigo = arqCodigo
         self.currentToken = 0
 
     def match(self, terminal):
@@ -28,12 +29,16 @@ class AnalisadorDescendente():
             tabs = '\t' * TAB_NUM
             print(f'{tabs}Li "{terminal}"')
         else:
-            raise SyntaxError(f'Token esperado: \'{terminal}\'. Token lido: \'{self.tokenAtual()}\'')
+            raise SyntaxError(f'{self.generateLink()} Token esperado: \'{terminal}\'. Token lido: \'{self.tokenAtual()}\'')
 
         self.proximoToken()
 
+    def generateLink(self):
+        tokenAtual = self.tokens[self.currentToken]
+        return f'./{self.arqCodigo}:{tokenAtual.linha}:{tokenAtual.coluna}'
+
     def tokenAtual(self):
-        return self.tokens[self.currentToken][0]
+        return self.tokens[self.currentToken].token
 
     def proximoToken(self):
         self.currentToken += 1
@@ -44,12 +49,12 @@ class AnalisadorDescendente():
             tabs = '\t' * TAB_NUM
             print(f'{tabs}{tipo} \'{self.tokenAtual()}\'')
         else:
-            raise SyntaxError(f'Tipo esperado: \'{tipo}\'. Tipo lido: \'{self.tipoAtual()}\'')
+            raise SyntaxError(f'{self.generateLink()} Tipo esperado: \'{tipo}\'. Tipo lido: \'{self.tipoAtual()}\'')
 
         self.proximoToken()
 
     def tipoAtual(self):
-        return self.tokens[self.currentToken][1]
+        return self.tokens[self.currentToken].tipo
 
     def run(self):
         self.program()
