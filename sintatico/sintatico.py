@@ -106,7 +106,6 @@ class AnalisadorDescendente():
                 and self.tokenAtual() != 'function' and self.tokenAtual() != 'procedure':
                 self.declaracaoVariavel()
 
-
     @logFunc
     def declaracaoVariavel(self):
         self.listaIdentificador()
@@ -185,6 +184,7 @@ class AnalisadorDescendente():
     @logFunc
     def expressao(self):
         self.expressaoSimples()
+
         if self.tokenAtual() == '=':
             self.match('=')
             self.expressaoSimples()
@@ -312,14 +312,24 @@ class AnalisadorDescendente():
 
     @logFunc
     def secaoParametrosFormais(self):
-        if self.tokenAtual() == 'var':
-            self.match('var')
 
-        self.listaIdentificador()
+        if self.tokenAtual() == 'procedure':
+            self.match('procedure')
 
-        self.match(':')
+            self.listaIdentificador()
 
-        self.identificador()
+        else:
+            if self.tokenAtual() == 'function':
+                self.match('function')
+
+            elif self.tokenAtual() == 'var':
+                self.match('var')
+
+            self.listaIdentificador()
+
+            self.match(':')
+
+            self.identificador()
 
     @logFunc
     def comando(self):
