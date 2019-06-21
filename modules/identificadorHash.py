@@ -79,6 +79,25 @@ class ProcedimentoHash(IdentificadorHash):
         self._rotulo = ''
         self._numero_parametros = 0
         self._tipo_passagem = []
+    
+    def getRotulo(self):
+        return self._rotulo
+    
+    def getNumeroParametros(self):
+        return self._numero_parametros
+    
+    def getVetorTipoPassagem(self):
+        return self._tipo_passagem
+    
+    def setRotulo(self,rotulo):
+        self._rotulo = rotulo
+    
+    def setNumeroParametros(self,numero_parametros):
+        self._numero_parametros = numero_parametros    
+    
+    def setVetorTipoPassagem(self,tipo_passagem):
+        self._tipo_passagem = tipo_passagem    
+
 
 class FuncaoHash(IdentificadorHash):
 
@@ -88,10 +107,68 @@ class FuncaoHash(IdentificadorHash):
         self._numero_parametros = 0
         self._tipo_passagem = []
         self._retorno = ''
+    
+    def getRotulo(self):
+        return self._rotulo
+    
+    def getNumeroParametros(self):
+        return self._numero_parametros
+    
+    def getVetorTipoPassagem(self):
+        return self._tipo_passagem
+    
+    def getRetorno(self):
+        return self._retorno
+    
+    def setRotulo(self,rotulo):
+        self._rotulo = rotulo
+    
+    def setNumeroParametros(self,numero_parametros):
+        self._numero_parametros = numero_parametros    
+    
+    def setVetorTipoPassagem(self,tipo_passagem):
+        self._tipo_passagem = tipo_passagem    
+    
+    def setRetorno(self,retorno):
+        self._retorno = retorno
 
 class DistribuidorHash:
 
-    def casoVarSimples(self, vetor_tokens, posicao_inicial, nivel):
-        variavel_simples = VariavelSimplesHash()
-        return variavel_simples
+    def insereIdentificadorNaHash(self, tabela_identificadores, identificador, categoria, nível, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno):
+        if (passagem and rotulo and n_parametros and retorno) is None: 
+            variavel_simples = VariavelSimplesHash()
+            variavel_simples.setIdentificador(identificador)
+            variavel_simples.setCategoria(categoria)
+            variavel_simples.setNivel(nivel)
+            variavel_simples.setDeslocamento(deslocamento)
 
+            tabela_identificadores.addItem(identificador, variavel_simples)
+        elif(passagem is not None) and ((rotulo and n_parametros and retorno) is None):
+            parametro_formal = ParametroFormalHash()
+            parametro_formal.setIdentificador(identificador)
+            parametro_formal.setCategoria(categoria)
+            parametro_formal.setNivel(nivel)
+            parametro_formal.setDeslocamento(deslocamento)
+            parametro_formal.setPassagem(passagem)
+
+            tabela_identificadores.addItem(identificador, parametro_formal)
+        elif( (rotulo and n_parametros) is not None) and (tipo and deslocamento and retorno and passagem) is None):
+            procedimento = ProcedimentoHash()
+            procedimento.setIdentificador(identificador)
+            procedimento.setCategoria(categoria)
+            procedimento.setNivel(nivel)
+            procedimento.setRotulo(rotulo)
+            procedimento.setNumeroParametros(n_parametros)
+            procedimento.setVetorTipoPassagem(vetor_parametros_passagem)
+
+            tabela_identificadores.addItem(identificador, procedimento)
+        elif(tipo and deslocamento and passagem is None) and ((retorno and rotulo and n_parametros) is not None):
+            procedimento = ProcedimentoHash()
+            procedimento.setIdentificador(identificador)
+            procedimento.setCategoria(categoria)
+            procedimento.setNivel(nivel)
+            procedimento.setRotulo(rotulo)
+            procedimento.setNumeroParametros(n_parametros)
+            procedimento.setVetorTipoPassagem(vetor_parametros_passagem)
+
+            tabela_identificadores.addItem(identificador, procedimento)
