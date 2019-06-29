@@ -49,12 +49,9 @@ if __name__ == '__main__':
             tokens.append(newItem)
 
     # Coloca os identificadores numa tabela hash
-    for identificador in identificacores:
-        tabela_ids[identificador] = identificador
+    # for identificador in identificacores:
+    #     tabela_ids[identificador] = identificador
 
-    # Printa a tabela hash no arquivo
-    with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
-        tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
 
     # Printa os tokens
     with open(f'{argumentos.saida}_tokens.txt', 'w') as arquivo:
@@ -62,6 +59,10 @@ if __name__ == '__main__':
             print(f'Token: \'{token}\' Classificação: {classificacao}', file=arquivo)
 
     # Analise sintatica
-    descendente = AnalisadorDescendente(tokens)
-
+    descendente = AnalisadorDescendente(tokens, tabela_ids_sintatico)
+    
     descendente.run()
+
+    # Printa a tabela hash no arquivo
+    with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
+        tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
