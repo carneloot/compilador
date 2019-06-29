@@ -59,7 +59,7 @@ if __name__ == '__main__':
             print(f'Token: \'{token}\' Classificação: {classificacao}', file=arquivo)
 
     # Analise sintatica
-    descendente = AnalisadorDescendente(tokens, tabela_ids_sintatico)
+    descendente = AnalisadorDescendente(tokens, tabela_ids)
     
     descendente.run()
 

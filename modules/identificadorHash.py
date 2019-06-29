@@ -1,4 +1,4 @@
-from tabelahash import TabelaHash
+from modules.tabelahash import TabelaHash
 
 class IdentificadorHash:
 
@@ -24,7 +24,6 @@ class IdentificadorHash:
 
     def setNivel(self, nivel):
         self._nivel = nivel
-
 
 class VariavelSimplesHash(IdentificadorHash):
     def __init__(self):
@@ -103,7 +102,6 @@ class ProcedimentoHash(IdentificadorHash):
     def setHash(self, hash_ids):
         self._hash_ids = hash_ids
 
-
 class FuncaoHash(IdentificadorHash):
 
     def __init__(self):
@@ -141,54 +139,5 @@ class FuncaoHash(IdentificadorHash):
     def setRetorno(self,retorno):
         self._retorno = retorno
 
-    def setHash(self, hash_ids:
+    def setHash(self, hash_ids):
         self._hash_ids = hash_ids
-
-class DistribuidorHash:
-
-    def insereIdentificadorNaHash(tabela_identificadores, identificador, categoria, nível, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_ids):
-        if (passagem and rotulo and n_parametros and retorno) is None: 
-            variavel_simples = VariavelSimplesHash()
-            variavel_simples.setIdentificador(identificador)
-            variavel_simples.setCategoria(categoria)
-            variavel_simples.setNivel(nivel)
-            variavel_simples.setDeslocamento(deslocamento)
-            variavel_simples.setTipo(tipo)
-
-            tabela_identificadores.addItem(identificador, variavel_simples)
-        elif(passagem is not None) and ((rotulo and n_parametros and retorno) is None):
-            parametro_formal = ParametroFormalHash()
-            parametro_formal.setIdentificador(identificador)
-            parametro_formal.setCategoria(categoria)
-            parametro_formal.setNivel(nivel)
-            parametro_formal.setDeslocamento(deslocamento)
-            parametro_formal.setPassagem(passagem)
-
-            tabela_identificadores.addItem(identificador, parametro_formal)
-        elif( (rotulo and n_parametros) is not None) and (tipo and deslocamento and retorno and passagem) is None):
-            procedimento = ProcedimentoHash()
-            procedimento.setIdentificador(identificador)
-            procedimento.setCategoria(categoria)
-            procedimento.setNivel(nivel)
-            procedimento.setRotulo(rotulo)
-            procedimento.setNumeroParametros(n_parametros)
-            procedimento.setVetorTipoPassagem(vetor_parametros_passagem)
-            procedimento.setHash(hash_ids)
-
-            tabela_identificadores.addItem(identificador, procedimento)
-        elif(tipo and deslocamento and passagem is None) and ((retorno and rotulo and n_parametros) is not None):
-            procedimento = FuncaoHash()
-            procedimento.setIdentificador(identificador)
-            procedimento.setCategoria(categoria)
-            procedimento.setNivel(nivel)
-            procedimento.setRotulo(rotulo)
-            procedimento.setNumeroParametros(n_parametros)
-            procedimento.setVetorTipoPassagem(vetor_parametros_passagem)
-            procedimento.setRetorno(tipo)
-            procedimento.setHash(hash_ids)
-
-            tabela_identificadores.addItem(identificador, procedimento)
-
-
-    def getItemHash(tabela_identificadores, identificador):
-        return tabela_identificadores.getItem(identificador)

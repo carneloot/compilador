@@ -1,22 +1,23 @@
-from identificadorHash import *
-from tabelahash import TabelaHash
+from modules.identificadorHash import *
+from modules.distribuidorHash import DistribuidorHash
+from modules.tabelahash import TabelaHash
 TAB_NUM = 0
 
-def logFunc(function):
-    def wrapper(self):
-        global TAB_NUM
-        tabs = '\t' * TAB_NUM
-        print(f'{tabs}Enter <{function.__name__}>')
-        TAB_NUM += 1
+# def logFunc(function):
+#     def wrapper(self):
+#         global TAB_NUM
+#         tabs = '\t' * TAB_NUM
+#         print(f'{tabs}Enter <{function.__name__}>')
+#         TAB_NUM += 1
 
-        resultado = function(self)
+#         resultado = function(self)
 
-        TAB_NUM -= 1
-        print(f'{tabs}Exit <{function.__name__}>')
+#         TAB_NUM -= 1
+#         print(f'{tabs}Exit <{function.__name__}>')
 
-        return resultado
+#         return resultado
 
-    return wrapper
+#     return wrapper
 
 class AnalisadorDescendente():
 
@@ -60,7 +61,7 @@ class AnalisadorDescendente():
 
     # Funcoes de nao terminais
 
-    @logFunc
+    # @logFunc
     def program(self):
 
         if self.tokenAtual() == 'program':
@@ -70,7 +71,7 @@ class AnalisadorDescendente():
 
             self.match('program')
 
-            self.identificador(self.hash_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
+            self.identificador(self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None, None)
 
             self.match(';')
 
@@ -78,27 +79,27 @@ class AnalisadorDescendente():
 
             self.match('.')
 
-    @logFunc
+    # @logFunc
     def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
 
         if addHash:
-            insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
+            DistribuidorHash.insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
 
         self.matchTipo('ID')
 
-    @logFunc
+    # @logFunc
     def numero(self):
         self.matchTipo('Numero')
 
-    @logFunc
+    # @logFunc
     def reservada(self):
         self.matchTipo('Reservada')
 
-    @logFunc
+    # @logFunc
     def string(self):
         self.matchTipo('String')
 
-    @logFunc
+    # @logFunc
     def bloco(self, hash_ids, nivel):
         deslocamento_anterior = self.deslocamento
         self.deslocamento = 0
@@ -112,7 +113,7 @@ class AnalisadorDescendente():
         self.comandoComposto()
         self.deslocamento = deslocamento_anterior
 
-    @logFunc
+    # @logFunc
     def parteDeclaracaoVariavel(self, hash_ids, nivel):
         
         if self.tokenAtual() == 'var':
@@ -124,7 +125,7 @@ class AnalisadorDescendente():
                 and self.tokenAtual() != 'function' and self.tokenAtual() != 'procedure':
                 self.declaracaoVariavel(hash_ids, nivel, False)
         
-    @logFunc
+    # @logFunc
     def declaracaoVariavel(self, hash_ids, nivel, isFirst):
         vetor_ids = []
         self.listaIdentificador(hash_ids, nivel, vetor_ids, None, is_parametro=False, is_first=isFirst)
@@ -142,7 +143,7 @@ class AnalisadorDescendente():
         self.match(';')
         
 
-    @logFunc
+    # @logFunc
     def listaIdentificador(self, hash_ids, nivel, vetor_ids, passagem, is_parametro=False, is_first=True):
         if is_parametro:
             if is_first:
@@ -167,7 +168,7 @@ class AnalisadorDescendente():
             self.deslocamento += iteracao
 
 
-    @logFunc
+    # @logFunc
     def tipo(self, nivel):
         
         if self.tipoAtual() == 'ID':
@@ -175,7 +176,7 @@ class AnalisadorDescendente():
         if self.tipoAtual() == 'Reservada':
             self.reservada()
 
-    @logFunc
+    # @logFunc
     def indice(self):
         self.numero()
 
@@ -183,7 +184,7 @@ class AnalisadorDescendente():
 
         self.numero()
 
-    @logFunc
+    # @logFunc
     def parteDeclaracaoSubRotinas(self, hash_ids, nivel):
         if self.tokenAtual() == 'procedure':
             self.parteDeclaracaoProcedimento(hash_ids, nivel)
@@ -193,7 +194,7 @@ class AnalisadorDescendente():
 
         self.match(';')
 
-    @logFunc
+    # @logFunc
     def parteDeclaracaoProcedimento(self, hash_id, nivel):
         self.match('procedure')
         parametros = []
@@ -211,7 +212,7 @@ class AnalisadorDescendente():
 
         self.bloco(hash_local, nivel + 1)
 
-    @logFunc
+    # @logFunc
     def parteDeclaracaoFuncao(self, hash_id, nivel):
         self.match('function')
         nome_funcao = self.tokenAtual()
@@ -240,7 +241,7 @@ class AnalisadorDescendente():
 
         self.bloco(hash_local, nivel + 1)
 
-    @logFunc
+    # @logFunc
     def expressao(self):
         self.expressaoSimples()
 
@@ -268,7 +269,7 @@ class AnalisadorDescendente():
             self.match('>')
             self.expressaoSimples()
 
-    @logFunc
+    # @logFunc
     def expressaoSimples(self):
 
         if self.tokenAtual() == '+':
@@ -288,7 +289,7 @@ class AnalisadorDescendente():
             self.match('or')
             self.expressaoSimples()
 
-    @logFunc
+    # @logFunc
     def termo(self):
         self.fator()
 
@@ -304,7 +305,7 @@ class AnalisadorDescendente():
             self.match('and')
             self.termo()
 
-    @logFunc
+    # @logFunc
     def fator(self):
 
         if self.tipoAtual() == 'ID':
@@ -344,7 +345,7 @@ class AnalisadorDescendente():
             self.match('not')
             self.fator()
 
-    @logFunc
+    # @logFunc
     def comandoComposto(self):
         self.match('begin')
 
@@ -356,7 +357,7 @@ class AnalisadorDescendente():
 
         self.match('end')
 
-    @logFunc
+    # @logFunc
     def parametrosFormais(self, hash_id, nivel, vetor_ids ):
         self.match('(')
 
@@ -378,7 +379,7 @@ class AnalisadorDescendente():
 
         self.match(')')
 
-    @logFunc
+    # @logFunc
     def secaoParametrosFormais(self, hash_id, nivel, is_first, vetor_ids):
         
 
@@ -417,11 +418,11 @@ class AnalisadorDescendente():
 
             self.identificador(False, None, None, None, None, None, None, None, None, None)
 
-    @logFunc
+    # @logFunc
     def comando(self):
         self.comandoSemRotulo()
 
-    @logFunc
+    # @logFunc
     def comandoSemRotulo(self):
         if self.tokenAtual() == 'if':
             self.comandoCondicional()
@@ -446,7 +447,7 @@ class AnalisadorDescendente():
             else:
                 self.chamadaProcedimento()
 
-    @logFunc
+    # @logFunc
     def comandoCondicional(self):
         self.match('if')
 
@@ -461,7 +462,7 @@ class AnalisadorDescendente():
 
             self.comandoSemRotulo()
 
-    @logFunc
+    # @logFunc
     def comandoRepetitivo(self):
         self.match('while')
 
@@ -471,7 +472,7 @@ class AnalisadorDescendente():
 
         self.comandoSemRotulo()
 
-    @logFunc
+    # @logFunc
     def funcaoRead(self):
         self.match('read')
 
@@ -481,7 +482,7 @@ class AnalisadorDescendente():
 
         self.match(')')
 
-    @logFunc
+    # @logFunc
     def funcaoWrite(self):
         self.match('write')
 
@@ -491,13 +492,13 @@ class AnalisadorDescendente():
 
         self.match(')')
 
-    @logFunc
+    # @logFunc
     def atribuicao(self):
         self.match(':=')
 
         self.expressao()
 
-    @logFunc
+    # @logFunc
     def chamadaProcedimento(self):
         if self.tokenAtual() == '(':
             self.match('(')
@@ -506,7 +507,7 @@ class AnalisadorDescendente():
 
             self.match('(')
 
-    @logFunc
+    # @logFunc
     def listaExpressao(self):
         self.expressao()
 
