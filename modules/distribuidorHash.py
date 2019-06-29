@@ -22,7 +22,7 @@ class DistribuidorHash:
             parametro_formal.setNivel(nivel)
             parametro_formal.setDeslocamento(deslocamento)
             parametro_formal.setPassagem(passagem)
-
+            
             tabela_identificadores.addItem(identificador, parametro_formal)
         elif ((rotulo and n_parametros) is not None) and (tipo and deslocamento and retorno and passagem) is None:
             print('----- Inserindo procedimento na hash -----')

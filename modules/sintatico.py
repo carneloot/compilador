@@ -71,11 +71,11 @@ class AnalisadorDescendente():
 
             self.match('program')
             
-            self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None, None)
+            self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
 
             self.match(';')
 
-            self.bloco(hash_ids, nivel)
+            self.bloco(self.tabela_ids, nivel)
 
             self.match('.')
 
@@ -132,13 +132,15 @@ class AnalisadorDescendente():
 
         self.match(':')
 
-        tipo = self.tokenAtual
+        tipo = self.tokenAtual()
+
         self.tipo(nivel)
 
         # Editar identificadores, adicionando o tipo
-        for id in vetor_ids:
-            item = DistribuidorHash.getItemHash(hash_ids, id)
-            item.setTipo(tipo)
+        for identificador in vetor_ids:
+            item = DistribuidorHash.getItemHash(hash_ids, identificador)
+            item['valor'].setTipo(tipo)
+            
 
         self.match(';')
         
@@ -158,13 +160,13 @@ class AnalisadorDescendente():
         
         vetor_ids.append(self.tokenAtual())
         
-        self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
+        self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
         self.deslocamento += iteracao
 
         while self.tokenAtual() == ',':
             self.match(',')
             vetor_ids.append(self.tokenAtual())
-            self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
+            self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
             self.deslocamento += iteracao
 
 
@@ -172,7 +174,7 @@ class AnalisadorDescendente():
     def tipo(self, nivel):
         
         if self.tipoAtual() == 'ID':
-            self.identificador(False, nivel, self.deslocamento, 'Palavra_tipo', self.tokenAtual, None, None, None, None, None)
+            self.identificador(False, nivel, self.deslocamento, 'Palavra_tipo', self.tokenAtual, None, None, None, None, None, None, None)
         if self.tipoAtual() == 'Reservada':
             self.reservada()
 
@@ -217,7 +219,7 @@ class AnalisadorDescendente():
         self.match('function')
         nome_funcao = self.tokenAtual()
         parametros = []
-        hash_local = TabelaHash
+        hash_local = TabelaHash()
         self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
 
         if self.tokenAtual() == '(':
@@ -406,17 +408,17 @@ class AnalisadorDescendente():
 
             # tipo
 
-            tipo = self.tokenAtual
+            tipo = self.tokenAtual()
             self.tipo(nivel)
 
             # Editar identificadores, adicionando o tipo
-            for id in vetor_ids:
-                item = DistribuidorHash.getItemHash(hash_id, id)
-                item.setTipo(tipo)
+            for identificador in vetor_ids:
+                item = DistribuidorHash.getItemHash(hash_id, identificador)
+                item['valor'].setTipo(tipo)
 
             vetor_ids.extend(vetor_local)
 
-            self.identificador(False, None, None, None, None, None, None, None, None, None)
+            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None)
 
     # @logFunc
     def comando(self):

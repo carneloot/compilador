@@ -68,6 +68,19 @@ class TabelaHash:
             raise KeyError('Chave nao encontrada')
         raise KeyError('Chave nao encontrada')
 
+    def getItemValue(self, key):
+        if type(key) != str:
+            raise TypeError('Tipo da chave utilizada deve ser uma string.')
+
+        posicao = self.__hash(key)
+
+        if self.__tabela[posicao] is not None:
+            for item in self.__tabela[posicao]:
+                if item['chave'] == key:
+                    return item['value']
+
+            raise KeyError('Chave nao encontrada')
+        raise KeyError('Chave nao encontrada')
 
 if __name__ == '__main__':
     tabela = TabelaHash()
