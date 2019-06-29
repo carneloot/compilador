@@ -1,4 +1,4 @@
-import tabelahash
+from tabelahash import TabelaHash
 
 class IdentificadorHash:
 
@@ -79,6 +79,7 @@ class ProcedimentoHash(IdentificadorHash):
         self._rotulo = ''
         self._numero_parametros = 0
         self._tipo_passagem = []
+        self._hash_ids = None
     
     def getRotulo(self):
         return self._rotulo
@@ -89,6 +90,9 @@ class ProcedimentoHash(IdentificadorHash):
     def getVetorTipoPassagem(self):
         return self._tipo_passagem
     
+    def getHash(self):
+        return self._hash_ids
+    
     def setRotulo(self,rotulo):
         self._rotulo = rotulo
     
@@ -96,7 +100,10 @@ class ProcedimentoHash(IdentificadorHash):
         self._numero_parametros = numero_parametros    
     
     def setVetorTipoPassagem(self,tipo_passagem):
-        self._tipo_passagem = tipo_passagem    
+        self._tipo_passagem = tipo_passagem
+    
+    def setHash(self, hash_ids):
+        self._hash_ids = hash_ids
 
 
 class FuncaoHash(IdentificadorHash):
@@ -107,6 +114,7 @@ class FuncaoHash(IdentificadorHash):
         self._numero_parametros = 0
         self._tipo_passagem = []
         self._retorno = ''
+        self._hash_ids = None
     
     def getRotulo(self):
         return self._rotulo
@@ -116,6 +124,9 @@ class FuncaoHash(IdentificadorHash):
     
     def getVetorTipoPassagem(self):
         return self._tipo_passagem
+
+    def getHash(self):
+        return self._hash_ids
     
     def getRetorno(self):
         return self._retorno
@@ -132,15 +143,19 @@ class FuncaoHash(IdentificadorHash):
     def setRetorno(self,retorno):
         self._retorno = retorno
 
+    def setHash(self, hash_ids:
+        self._hash_ids = hash_ids
+
 class DistribuidorHash:
 
-    def insereIdentificadorNaHash(self, tabela_identificadores, identificador, categoria, nível, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno):
+    def insereIdentificadorNaHash(tabela_identificadores, identificador, categoria, nível, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_ids):
         if (passagem and rotulo and n_parametros and retorno) is None: 
             variavel_simples = VariavelSimplesHash()
             variavel_simples.setIdentificador(identificador)
             variavel_simples.setCategoria(categoria)
             variavel_simples.setNivel(nivel)
             variavel_simples.setDeslocamento(deslocamento)
+            variavel_simples.setTipo(tipo)
 
             tabela_identificadores.addItem(identificador, variavel_simples)
         elif(passagem is not None) and ((rotulo and n_parametros and retorno) is None):
@@ -160,15 +175,22 @@ class DistribuidorHash:
             procedimento.setRotulo(rotulo)
             procedimento.setNumeroParametros(n_parametros)
             procedimento.setVetorTipoPassagem(vetor_parametros_passagem)
+            procedimento.setHash(hash_ids)
 
             tabela_identificadores.addItem(identificador, procedimento)
         elif(tipo and deslocamento and passagem is None) and ((retorno and rotulo and n_parametros) is not None):
-            procedimento = ProcedimentoHash()
+            procedimento = FuncaoHash()
             procedimento.setIdentificador(identificador)
             procedimento.setCategoria(categoria)
             procedimento.setNivel(nivel)
             procedimento.setRotulo(rotulo)
             procedimento.setNumeroParametros(n_parametros)
             procedimento.setVetorTipoPassagem(vetor_parametros_passagem)
+            procedimento.setRetorno(tipo)
+            procedimento.setHash(hash_ids)
 
             tabela_identificadores.addItem(identificador, procedimento)
+
+
+    def getItemHash(tabela_identificadores, identificador):
+        return tabela_identificadores.getItem(identificador)
