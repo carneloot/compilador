@@ -70,8 +70,8 @@ class AnalisadorDescendente():
             nivel = 0
 
             self.match('program')
-
-            self.identificador(self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None, None)
+            
+            self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None, None)
 
             self.match(';')
 
@@ -81,7 +81,7 @@ class AnalisadorDescendente():
 
     # @logFunc
     def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
-
+        
         if addHash:
             DistribuidorHash.insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
 
@@ -137,7 +137,7 @@ class AnalisadorDescendente():
 
         # Editar identificadores, adicionando o tipo
         for id in vetor_ids:
-            item = getItemHash(hash_ids, id)
+            item = DistribuidorHash.getItemHash(hash_ids, id)
             item.setTipo(tipo)
 
         self.match(';')
@@ -206,7 +206,7 @@ class AnalisadorDescendente():
             self.parametrosFormais( hash_local, nivel + 1 , parametros)
 
         # Editar o procedimento com o numero de parametros
-        item = getItemHash(hash_id, nome_procedure)
+        item = DistribuidorHash.getItemHash(hash_id, nome_procedure)
         item.setNuneroParametros( len(parametros) )
         self.match(';')
 
@@ -231,7 +231,7 @@ class AnalisadorDescendente():
         self.identificador(False, None, None, None, None, None, None, None, None, None, None, None,)
 
         # Editar número de parametros, e tipo de retorno
-        item = getItemHash(hash_id, nome_funcao)
+        item = DistribuidorHash.getItemHash(hash_id, nome_funcao)
         item.setTipo(tipo)
         item.setNuneroParametros(len(parametros))
 
@@ -372,7 +372,7 @@ class AnalisadorDescendente():
         i = len(vetor_ids) - 1
         deslocamento = -3
         while i > 0:
-            item = getItemHash( hash_id, vetor_ids[i] )
+            item = DistribuidorHash.getItemHash( hash_id, vetor_ids[i] )
             item.setDeslocamento( deslocamento )
             deslocamento -= 1
             i -= 1
@@ -411,7 +411,7 @@ class AnalisadorDescendente():
 
             # Editar identificadores, adicionando o tipo
             for id in vetor_ids:
-                item = getItemHash(hash_id, id)
+                item = DistribuidorHash.getItemHash(hash_id, id)
                 item.setTipo(tipo)
 
             vetor_ids.extend(vetor_local)
