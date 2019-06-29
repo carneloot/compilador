@@ -1,3 +1,5 @@
+from identificadorHash import *
+from tabelahash import TabelaHash
 TAB_NUM = 0
 
 def logFunc(function):
@@ -18,9 +20,11 @@ def logFunc(function):
 
 class AnalisadorDescendente():
 
-    def __init__(self, tokens):
+    def __init__(self, tokens, tabela_ids):
         self.tokens = tokens
         self.currentToken = 0
+        self.tabela_ids = tabela_ids
+        self.deslocamento = 0
 
     def match(self, terminal):
         global TAB_NUM
@@ -60,18 +64,26 @@ class AnalisadorDescendente():
     def program(self):
 
         if self.tokenAtual() == 'program':
+
+            # Vai manter controle do nível lexico
+            nivel = 0
+
             self.match('program')
 
-            self.identificador()
+            self.identificador(self.hash_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
 
             self.match(';')
 
-            self.bloco()
+            self.bloco(hash_ids, nivel)
 
             self.match('.')
 
     @logFunc
-    def identificador(self):
+    def identificador(self, addHash=True, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
+
+        if addHash:
+            insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
+
         self.matchTipo('ID')
 
     @logFunc
@@ -87,48 +99,80 @@ class AnalisadorDescendente():
         self.matchTipo('String')
 
     @logFunc
-    def bloco(self):
-        self.parteDeclaracaoVariavel()
+    def bloco(self, hash_ids, nivel):
+        deslocamento_anterior = self.deslocamento
+        self.deslocamento = 0
+        self.parteDeclaracaoVariavel(hash_ids, nivel)
+        
 
         while self.tokenAtual() == "procedure" or self.tokenAtual() == "function":
-            self.parteDeclaracaoSubRotinas()
+            self.deslocamento += 1
+            self.parteDeclaracaoSubRotinas(hash_ids, nivel)
 
         self.comandoComposto()
+        self.deslocamento = deslocamento_anterior
 
     @logFunc
-    def parteDeclaracaoVariavel(self):
+    def parteDeclaracaoVariavel(self, hash_ids, nivel):
+        
         if self.tokenAtual() == 'var':
             self.match('var')
 
-            self.declaracaoVariavel()
+            self.declaracaoVariavel(hash_ids, nivel, True)
 
             while self.tipoAtual() == 'ID' \
                 and self.tokenAtual() != 'function' and self.tokenAtual() != 'procedure':
-                self.declaracaoVariavel()
-
+                self.declaracaoVariavel(hash_ids, nivel, False)
+        
     @logFunc
-    def declaracaoVariavel(self):
-        self.listaIdentificador()
+    def declaracaoVariavel(self, hash_ids, nivel, isFirst):
+        vetor_ids = []
+        self.listaIdentificador(hash_ids, nivel, is_parametro=False, is_first=isFirst, vetor_ids, None)
 
         self.match(':')
 
-        self.tipo()
+        tipo = self.tokenAtual
+        self.tipo(nivel)
+
+        # Editar identificadores, adicionando o tipo
+        for id in vetor_ids:
+            item = getItemHash(hash_ids, id)
+            item.setTipo(tipo)
 
         self.match(';')
+        
 
     @logFunc
-    def listaIdentificador(self):
-        self.identificador()
+    def listaIdentificador(self, hash_ids, nivel, is_parametro=False, is_first=True, vetor_ids, passagem):
+        if is_parametro:
+            if is_first:
+                self.deslocamento = -3
+            iteracao = -1
+            categoria = 'parametro formal'
+        else:
+            if is_first:
+                self.deslocamento = 0
+            iteracao = 1
+            categoria = 'variavel simples'
+        
+        vetor_ids.append(self.tokenAtual())
+        
+        self.identificador(addHash=True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
+        self.deslocamento += iteracao
 
         while self.tokenAtual() == ',':
             self.match(',')
-            self.identificador()
+            vetor_ids.append(self.tokenAtual())
+            self.identificador(addHash=True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
+            self.deslocamento += iteracao
+
 
     @logFunc
-    def tipo(self):
+    def tipo(self, nivel):
+        
         if self.tipoAtual() == 'ID':
-            self.identificador()
-        elif self.tipoAtual() == 'Reservada':
+            self.identificador(addHash=False, nivel, self.deslocamento, 'Palavra_tipo', self.tokenAtual, None, None, None, None, None)
+        if self.tipoAtual() == 'Reservada':
             self.reservada()
 
     @logFunc
@@ -140,46 +184,61 @@ class AnalisadorDescendente():
         self.numero()
 
     @logFunc
-    def parteDeclaracaoSubRotinas(self):
+    def parteDeclaracaoSubRotinas(self, hash_ids, nivel):
         if self.tokenAtual() == 'procedure':
-            self.parteDeclaracaoProcedimento()
+            self.parteDeclaracaoProcedimento(hash_ids, nivel)
 
         elif self.tokenAtual() == 'function':
-            self.parteDeclaracaoFuncao()
+            self.parteDeclaracaoFuncao(hash_ids, nivel)
 
         self.match(';')
 
     @logFunc
-    def parteDeclaracaoProcedimento(self):
+    def parteDeclaracaoProcedimento(self, hash_id, nivel):
         self.match('procedure')
-
-        self.identificador()
+        parametros = []
+        nome_procedure = self.tokenAtual()
+        hash_local = TabelaHash()
+        self.identificador(addHash=True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
 
         if self.tokenAtual() == '(':
-            self.match('(')
+            self.parametrosFormais( hash_local, nivel + 1 , parametros)
 
-            self.parametrosFormais()
-
+        # Editar o procedimento com o numero de parametros
+        item = getItemHash(hash_id, nome_procedure)
+        item.setNuneroParametros( len(parametros) )
         self.match(';')
 
-        self.bloco()
+        self.bloco(hash_local, nivel + 1)
 
     @logFunc
-    def parteDeclaracaoFuncao(self):
+    def parteDeclaracaoFuncao(self, hash_id, nivel):
         self.match('function')
-
-        self.identificador()
+        nome_funcao = self.tokenAtual()
+        parametros = []
+        hash_local = TabelaHash
+        self.identificador(addHash=True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
 
         if self.tokenAtual() == '(':
-            self.parametrosFormais()
+            self.parametrosFormais(hash_local, nivel + 1, parametros)
 
+        
         self.match(':')
 
-        self.identificador()
+        # Tipo de retorno:
+        tipo = self.tokenAtual()
+        self.identificador(addHash=False, None, None, None, None, None, None, None, None, None, None, None,)
+
+        # Editar número de parametros, e tipo de retorno
+        item = getItemHash(hash_id, nome_funcao)
+        item.setTipo(tipo)
+        item.setNuneroParametros(len(parametros))
+
+
 
         self.match(';')
 
-        self.bloco()
+        self.bloco(hash_local, nivel + 1)
 
     @logFunc
     def expressao(self):
@@ -298,38 +357,65 @@ class AnalisadorDescendente():
         self.match('end')
 
     @logFunc
-    def parametrosFormais(self):
+    def parametrosFormais(self, hash_id, nivel, vetor_ids ):
         self.match('(')
 
-        self.secaoParametrosFormais()
+        self.secaoParametrosFormais(hash_id, nivel, True, vetor_ids)
 
         while self.tokenAtual() == ';':
             self.match(';')
 
-            self.secaoParametrosFormais()
+            self.secaoParametrosFormais(hash_id, nivel, False, vetor_ids)
+
+        # Arrumando deslocamento dos parametros
+        i = len(vetor_ids) - 1
+        deslocamento = -3
+        while i > 0:
+            item = getItemHash( hash_id, vetor_ids[i] )
+            item.setDeslocamento( deslocamento )
+            deslocamento -= 1
+            i -= 1
 
         self.match(')')
 
     @logFunc
-    def secaoParametrosFormais(self):
+    def secaoParametrosFormais(self, hash_id, nivel, is_first, vetor_ids):
+        
 
         if self.tokenAtual() == 'procedure':
             self.match('procedure')
-
-            self.listaIdentificador()
+            self.listaIdentificador(hash_id, nivel, is_parametro=True, is_first=is_first, vetor_ids, False )
 
         else:
+            passagem = False
+
             if self.tokenAtual() == 'function':
                 self.match('function')
+                passagem = None
 
             elif self.tokenAtual() == 'var':
                 self.match('var')
+                passagem = True
+                
 
-            self.listaIdentificador()
+            vetor_local = []
+            self.listaIdentificador(hash_id, nivel, is_parametro=True, is_first=False, vetor_local, passagem)
 
             self.match(':')
 
-            self.identificador()
+            # tipo
+
+            tipo = self.tokenAtual
+            self.tipo(nivel)
+
+            # Editar identificadores, adicionando o tipo
+            for id in vetor_ids:
+                item = getItemHash(hash_id, id)
+                item.setTipo(tipo)
+
+            vetor_ids.extend(vetor_local)
+
+            self.identificador(addHash = False, None, None, None, None, None, None, None, None, None)
 
     @logFunc
     def comando(self):
