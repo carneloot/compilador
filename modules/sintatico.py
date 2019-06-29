@@ -79,7 +79,7 @@ class AnalisadorDescendente():
             self.match('.')
 
     @logFunc
-    def identificador(self, addHash=True, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
+    def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
 
         if addHash:
             insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
@@ -127,7 +127,7 @@ class AnalisadorDescendente():
     @logFunc
     def declaracaoVariavel(self, hash_ids, nivel, isFirst):
         vetor_ids = []
-        self.listaIdentificador(hash_ids, nivel, is_parametro=False, is_first=isFirst, vetor_ids, None)
+        self.listaIdentificador(hash_ids, nivel, vetor_ids, None, is_parametro=False, is_first=isFirst)
 
         self.match(':')
 
@@ -143,7 +143,7 @@ class AnalisadorDescendente():
         
 
     @logFunc
-    def listaIdentificador(self, hash_ids, nivel, is_parametro=False, is_first=True, vetor_ids, passagem):
+    def listaIdentificador(self, hash_ids, nivel, vetor_ids, passagem, is_parametro=False, is_first=True):
         if is_parametro:
             if is_first:
                 self.deslocamento = -3
@@ -157,13 +157,13 @@ class AnalisadorDescendente():
         
         vetor_ids.append(self.tokenAtual())
         
-        self.identificador(addHash=True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
+        self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
         self.deslocamento += iteracao
 
         while self.tokenAtual() == ',':
             self.match(',')
             vetor_ids.append(self.tokenAtual())
-            self.identificador(addHash=True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
+            self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None )
             self.deslocamento += iteracao
 
 
@@ -171,7 +171,7 @@ class AnalisadorDescendente():
     def tipo(self, nivel):
         
         if self.tipoAtual() == 'ID':
-            self.identificador(addHash=False, nivel, self.deslocamento, 'Palavra_tipo', self.tokenAtual, None, None, None, None, None)
+            self.identificador(False, nivel, self.deslocamento, 'Palavra_tipo', self.tokenAtual, None, None, None, None, None)
         if self.tipoAtual() == 'Reservada':
             self.reservada()
 
@@ -199,7 +199,7 @@ class AnalisadorDescendente():
         parametros = []
         nome_procedure = self.tokenAtual()
         hash_local = TabelaHash()
-        self.identificador(addHash=True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
+        self.identificador(True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
 
         if self.tokenAtual() == '(':
             self.parametrosFormais( hash_local, nivel + 1 , parametros)
@@ -217,7 +217,7 @@ class AnalisadorDescendente():
         nome_funcao = self.tokenAtual()
         parametros = []
         hash_local = TabelaHash
-        self.identificador(addHash=True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
+        self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
 
         if self.tokenAtual() == '(':
             self.parametrosFormais(hash_local, nivel + 1, parametros)
@@ -227,7 +227,7 @@ class AnalisadorDescendente():
 
         # Tipo de retorno:
         tipo = self.tokenAtual()
-        self.identificador(addHash=False, None, None, None, None, None, None, None, None, None, None, None,)
+        self.identificador(False, None, None, None, None, None, None, None, None, None, None, None,)
 
         # Editar número de parametros, e tipo de retorno
         item = getItemHash(hash_id, nome_funcao)
@@ -384,7 +384,7 @@ class AnalisadorDescendente():
 
         if self.tokenAtual() == 'procedure':
             self.match('procedure')
-            self.listaIdentificador(hash_id, nivel, is_parametro=True, is_first=is_first, vetor_ids, False )
+            self.listaIdentificador(hash_id, nivel, vetor_ids, False, is_parametro=True, is_first=is_first)
 
         else:
             passagem = False
@@ -399,7 +399,7 @@ class AnalisadorDescendente():
                 
 
             vetor_local = []
-            self.listaIdentificador(hash_id, nivel, is_parametro=True, is_first=False, vetor_local, passagem)
+            self.listaIdentificador(hash_id, nivel, vetor_local, passagem, is_parametro=True, is_first=False)
 
             self.match(':')
 
@@ -415,7 +415,7 @@ class AnalisadorDescendente():
 
             vetor_ids.extend(vetor_local)
 
-            self.identificador(addHash = False, None, None, None, None, None, None, None, None, None)
+            self.identificador(False, None, None, None, None, None, None, None, None, None)
 
     @logFunc
     def comando(self):

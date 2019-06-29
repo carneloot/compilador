@@ -24,9 +24,7 @@ class IdentificadorHash:
 
     def setNivel(self, nivel):
         self._nivel = nivel
-    
-        
-    
+
 
 class VariavelSimplesHash(IdentificadorHash):
     def __init__(self):
