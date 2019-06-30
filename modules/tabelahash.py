@@ -1,5 +1,18 @@
 from sys import stdout
+import json
 
+class MyEncoder(json.JSONEncoder):
+    def default(self, o):
+        if isinstance(o, TabelaHash):
+            newTable = []
+            for i, item in enumerate(o.getTable()):
+                if item is not None:
+                    newTable.append((i, item));
+            return {
+                'tabela': newTable
+            }
+
+        return o.__dict__
 
 class TabelaHash:
 
@@ -14,6 +27,9 @@ class TabelaHash:
     def __getitem__(self, key):
         return self.getItem(key)
 
+    def getTable(self):
+        return self.__tabela
+
     def __hash(self, chave: str):
         h = 0
 
@@ -26,9 +42,7 @@ class TabelaHash:
         return self.___hash(chave)
 
     def print(self, filesrc=stdout, print_none=True):
-        for i, valor in enumerate(self.__tabela):
-            if print_none or valor is not None:
-                print(f'{str(i).zfill(3)}: {valor}', file=filesrc)
+        json.dump(self, filesrc, cls=MyEncoder, indent=4, sort_keys=True)
 
     def addItem(self, key, value):
         if type(key) != str:
