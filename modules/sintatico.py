@@ -1,27 +1,32 @@
+from modules.identificadorHash import *
+from modules.distribuidorHash import DistribuidorHash
+from modules.tabelahash import TabelaHash
 TAB_NUM = 0
 
-def logFunc(function):
-    def wrapper(self):
-        global TAB_NUM
-        tabs = '\t' * TAB_NUM
-        print(f'{tabs}Enter <{function.__name__}>')
-        TAB_NUM += 1
+# def logFunc(function):
+#     def wrapper(self):
+#         global TAB_NUM
+#         tabs = '\t' * TAB_NUM
+#         print(f'{tabs}Enter <{function.__name__}>')
+#         TAB_NUM += 1
 
-        resultado = function(self)
+#         resultado = function(self)
 
-        TAB_NUM -= 1
-        print(f'{tabs}Exit <{function.__name__}>')
+#         TAB_NUM -= 1
+#         print(f'{tabs}Exit <{function.__name__}>')
 
-        return resultado
+#         return resultado
 
-    return wrapper
+#     return wrapper
 
 class AnalisadorDescendente():
 
-    def __init__(self, tokens, arqCodigo):
+    def __init__(self, tokens, arqCodigo, tabela_ids):
         self.tokens = tokens
         self.arqCodigo = arqCodigo
         self.currentToken = 0
+        self.tabela_ids = tabela_ids
+        self.deslocamento = 0
 
     def match(self, terminal):
         global TAB_NUM
@@ -61,82 +66,124 @@ class AnalisadorDescendente():
 
     # Funcoes de nao terminais
 
-    @logFunc
+    # @logFunc
     def program(self):
 
         if self.tokenAtual() == 'program':
-            self.match('program')
 
-            self.identificador()
+            # Vai manter controle do nível lexico
+            nivel = 0
+
+            self.match('program')
+            
+            self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
 
             self.match(';')
 
-            self.bloco()
+            self.bloco(self.tabela_ids, nivel)
 
             self.match('.')
 
-    @logFunc
-    def identificador(self):
+    # @logFunc
+    def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
+        
+        if addHash:
+            DistribuidorHash.insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
+
         self.matchTipo('ID')
 
-    @logFunc
+    # @logFunc
     def numero(self):
         self.matchTipo('Numero')
 
-    @logFunc
+    # @logFunc
     def reservada(self):
         self.matchTipo('Reservada')
 
-    @logFunc
+    # @logFunc
     def string(self):
         self.matchTipo('String')
 
-    @logFunc
-    def bloco(self):
-        self.parteDeclaracaoVariavel()
+    # @logFunc
+    def bloco(self, hash_ids, nivel):
+        deslocamento_anterior = self.deslocamento
+        self.deslocamento = 0
+        self.parteDeclaracaoVariavel(hash_ids, nivel)
+        
 
         while self.tokenAtual() == "procedure" or self.tokenAtual() == "function":
-            self.parteDeclaracaoSubRotinas()
+            self.deslocamento += 1
+            self.parteDeclaracaoSubRotinas(hash_ids, nivel)
 
         self.comandoComposto()
+        self.deslocamento = deslocamento_anterior
 
-    @logFunc
-    def parteDeclaracaoVariavel(self):
+    # @logFunc
+    def parteDeclaracaoVariavel(self, hash_ids, nivel):
+        
         if self.tokenAtual() == 'var':
             self.match('var')
 
-            self.declaracaoVariavel()
+            self.declaracaoVariavel(hash_ids, nivel, True)
 
             while self.tipoAtual() == 'ID' \
                 and self.tokenAtual() != 'function' and self.tokenAtual() != 'procedure':
-                self.declaracaoVariavel()
-
-    @logFunc
-    def declaracaoVariavel(self):
-        self.listaIdentificador()
+                self.declaracaoVariavel(hash_ids, nivel, False)
+        
+    # @logFunc
+    def declaracaoVariavel(self, hash_ids, nivel, isFirst):
+        vetor_ids = []
+        self.listaIdentificador(hash_ids, nivel, vetor_ids, None, is_parametro=False, is_first=isFirst)
 
         self.match(':')
 
-        self.tipo()
+        tipo = self.tokenAtual()
+
+        self.tipo(nivel)
+
+        # Editar identificadores, adicionando o tipo
+        for identificador in vetor_ids:
+            item = DistribuidorHash.getItemHash(hash_ids, identificador)
+            item['valor'].setTipo(tipo)
+            
 
         self.match(';')
+        
 
-    @logFunc
-    def listaIdentificador(self):
-        self.identificador()
+    # @logFunc
+    def listaIdentificador(self, hash_ids, nivel, vetor_ids, passagem, is_parametro=False, is_first=True):
+        if is_parametro:
+            if is_first:
+                self.deslocamento = -3
+            iteracao = -1
+            categoria = 'parametro formal'
+        else:
+            if is_first:
+                self.deslocamento = 0
+            iteracao = 1
+            categoria = 'variavel simples'
+        
+        vetor_ids.append(self.tokenAtual())
+        
+        self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
+        self.deslocamento += iteracao
 
         while self.tokenAtual() == ',':
             self.match(',')
-            self.identificador()
+            vetor_ids.append(self.tokenAtual())
+            self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
+            self.deslocamento += iteracao
 
-    @logFunc
-    def tipo(self):
+
+    # @logFunc
+    def tipo(self, nivel):
+        
         if self.tipoAtual() == 'ID':
-            self.identificador()
-        elif self.tipoAtual() == 'Reservada':
+            self.identificador(False, nivel, self.deslocamento, 'Palavra_tipo', self.tokenAtual, None, None, None, None, None, None, None)
+        if self.tipoAtual() == 'Reservada':
             self.reservada()
 
-    @logFunc
+    # @logFunc
     def indice(self):
         self.numero()
 
@@ -144,49 +191,64 @@ class AnalisadorDescendente():
 
         self.numero()
 
-    @logFunc
-    def parteDeclaracaoSubRotinas(self):
+    # @logFunc
+    def parteDeclaracaoSubRotinas(self, hash_ids, nivel):
         if self.tokenAtual() == 'procedure':
-            self.parteDeclaracaoProcedimento()
+            self.parteDeclaracaoProcedimento(hash_ids, nivel)
 
         elif self.tokenAtual() == 'function':
-            self.parteDeclaracaoFuncao()
+            self.parteDeclaracaoFuncao(hash_ids, nivel)
 
         self.match(';')
 
-    @logFunc
-    def parteDeclaracaoProcedimento(self):
+    # @logFunc
+    def parteDeclaracaoProcedimento(self, hash_id, nivel):
         self.match('procedure')
-
-        self.identificador()
+        parametros = []
+        nome_procedure = self.tokenAtual()
+        hash_local = TabelaHash()
+        self.identificador(True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
 
         if self.tokenAtual() == '(':
-            self.match('(')
+            self.parametrosFormais( hash_local, nivel + 1 , parametros)
 
-            self.parametrosFormais()
-
+        # Editar o procedimento com o numero de parametros
+        item = DistribuidorHash.getItemHash(hash_id, nome_procedure)
+        item.setNuneroParametros( len(parametros) )
         self.match(';')
 
-        self.bloco()
+        self.bloco(hash_local, nivel + 1)
 
-    @logFunc
-    def parteDeclaracaoFuncao(self):
+    # @logFunc
+    def parteDeclaracaoFuncao(self, hash_id, nivel):
         self.match('function')
-
-        self.identificador()
+        nome_funcao = self.tokenAtual()
+        parametros = []
+        hash_local = TabelaHash()
+        self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
 
         if self.tokenAtual() == '(':
-            self.parametrosFormais()
+            self.parametrosFormais(hash_local, nivel + 1, parametros)
 
+        
         self.match(':')
 
-        self.identificador()
+        # Tipo de retorno:
+        tipo = self.tokenAtual()
+        self.identificador(False, None, None, None, None, None, None, None, None, None, None, None,)
+
+        # Editar número de parametros, e tipo de retorno
+        item = DistribuidorHash.getItemHash(hash_id, nome_funcao)
+        item.setTipo(tipo)
+        item.setNuneroParametros(len(parametros))
+
+
 
         self.match(';')
 
-        self.bloco()
+        self.bloco(hash_local, nivel + 1)
 
-    @logFunc
+    # @logFunc
     def expressao(self):
         self.expressaoSimples()
 
@@ -214,7 +276,7 @@ class AnalisadorDescendente():
             self.match('>')
             self.expressaoSimples()
 
-    @logFunc
+    # @logFunc
     def expressaoSimples(self):
 
         if self.tokenAtual() == '+':
@@ -234,7 +296,7 @@ class AnalisadorDescendente():
             self.match('or')
             self.expressaoSimples()
 
-    @logFunc
+    # @logFunc
     def termo(self):
         self.fator()
 
@@ -250,7 +312,7 @@ class AnalisadorDescendente():
             self.match('and')
             self.termo()
 
-    @logFunc
+    # @logFunc
     def fator(self):
 
         if self.tipoAtual() == 'ID':
@@ -290,7 +352,7 @@ class AnalisadorDescendente():
             self.match('not')
             self.fator()
 
-    @logFunc
+    # @logFunc
     def comandoComposto(self):
         self.match('begin')
 
@@ -302,45 +364,72 @@ class AnalisadorDescendente():
 
         self.match('end')
 
-    @logFunc
-    def parametrosFormais(self):
+    # @logFunc
+    def parametrosFormais(self, hash_id, nivel, vetor_ids ):
         self.match('(')
 
-        self.secaoParametrosFormais()
+        self.secaoParametrosFormais(hash_id, nivel, True, vetor_ids)
 
         while self.tokenAtual() == ';':
             self.match(';')
 
-            self.secaoParametrosFormais()
+            self.secaoParametrosFormais(hash_id, nivel, False, vetor_ids)
+
+        # Arrumando deslocamento dos parametros
+        i = len(vetor_ids) - 1
+        deslocamento = -3
+        while i > 0:
+            item = DistribuidorHash.getItemHash( hash_id, vetor_ids[i] )
+            item.setDeslocamento( deslocamento )
+            deslocamento -= 1
+            i -= 1
 
         self.match(')')
 
-    @logFunc
-    def secaoParametrosFormais(self):
+    # @logFunc
+    def secaoParametrosFormais(self, hash_id, nivel, is_first, vetor_ids):
+        
 
         if self.tokenAtual() == 'procedure':
             self.match('procedure')
-
-            self.listaIdentificador()
+            self.listaIdentificador(hash_id, nivel, vetor_ids, False, is_parametro=True, is_first=is_first)
 
         else:
+            passagem = False
+
             if self.tokenAtual() == 'function':
                 self.match('function')
+                passagem = None
 
             elif self.tokenAtual() == 'var':
                 self.match('var')
+                passagem = True
+                
 
-            self.listaIdentificador()
+            vetor_local = []
+            self.listaIdentificador(hash_id, nivel, vetor_local, passagem, is_parametro=True, is_first=False)
 
             self.match(':')
 
-            self.identificador()
+            # tipo
 
-    @logFunc
+            tipo = self.tokenAtual()
+            self.tipo(nivel)
+
+            # Editar identificadores, adicionando o tipo
+            for identificador in vetor_ids:
+                item = DistribuidorHash.getItemHash(hash_id, identificador)
+                item['valor'].setTipo(tipo)
+
+            vetor_ids.extend(vetor_local)
+
+            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None)
+
+    # @logFunc
     def comando(self):
         self.comandoSemRotulo()
 
-    @logFunc
+    # @logFunc
     def comandoSemRotulo(self):
         if self.tokenAtual() == 'if':
             self.comandoCondicional()
@@ -365,7 +454,7 @@ class AnalisadorDescendente():
             else:
                 self.chamadaProcedimento()
 
-    @logFunc
+    # @logFunc
     def comandoCondicional(self):
         self.match('if')
 
@@ -380,7 +469,7 @@ class AnalisadorDescendente():
 
             self.comandoSemRotulo()
 
-    @logFunc
+    # @logFunc
     def comandoRepetitivo(self):
         self.match('while')
 
@@ -390,7 +479,7 @@ class AnalisadorDescendente():
 
         self.comandoSemRotulo()
 
-    @logFunc
+    # @logFunc
     def funcaoRead(self):
         self.match('read')
 
@@ -400,7 +489,7 @@ class AnalisadorDescendente():
 
         self.match(')')
 
-    @logFunc
+    # @logFunc
     def funcaoWrite(self):
         self.match('write')
 
@@ -410,13 +499,13 @@ class AnalisadorDescendente():
 
         self.match(')')
 
-    @logFunc
+    # @logFunc
     def atribuicao(self):
         self.match(':=')
 
         self.expressao()
 
-    @logFunc
+    # @logFunc
     def chamadaProcedimento(self):
         if self.tokenAtual() == '(':
             self.match('(')
@@ -425,7 +514,7 @@ class AnalisadorDescendente():
 
             self.match('(')
 
-    @logFunc
+    # @logFunc
     def listaExpressao(self):
         self.expressao()
 
