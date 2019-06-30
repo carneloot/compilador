@@ -156,12 +156,12 @@ class AnalisadorDescendente():
             if is_first:
                 self.deslocamento = -3
             iteracao = -1
-            categoria = 'parametro formal'
+            categoria = 'parametro_formal'
         else:
             if is_first:
                 self.deslocamento = 0
             iteracao = 1
-            categoria = 'variavel simples'
+            categoria = 'variavel_simples'
         
         vetor_ids.append(self.tokenAtual())
         
@@ -214,7 +214,7 @@ class AnalisadorDescendente():
 
         # Editar o procedimento com o numero de parametros
         item = DistribuidorHash.getItemHash(hash_id, nome_procedure)
-        item.setNuneroParametros( len(parametros) )
+        item['valor'].setNumeroParametros( len(parametros) )
         self.match(';')
 
         self.bloco(hash_local, nivel + 1)
@@ -225,6 +225,7 @@ class AnalisadorDescendente():
         nome_funcao = self.tokenAtual()
         parametros = []
         hash_local = TabelaHash()
+        # def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
         self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
 
         if self.tokenAtual() == '(':
@@ -239,8 +240,8 @@ class AnalisadorDescendente():
 
         # Editar número de parametros, e tipo de retorno
         item = DistribuidorHash.getItemHash(hash_id, nome_funcao)
-        item.setTipo(tipo)
-        item.setNuneroParametros(len(parametros))
+        item['valor'].setRetorno(tipo)
+        item['valor'].setNumeroParametros(len(parametros))
 
 
 
@@ -316,7 +317,7 @@ class AnalisadorDescendente():
     def fator(self):
 
         if self.tipoAtual() == 'ID':
-            self.identificador()
+            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
             # Duas coisas podem acontecer
             # Colchetes
             if self.tokenAtual() == '[':
@@ -368,8 +369,8 @@ class AnalisadorDescendente():
     def parametrosFormais(self, hash_id, nivel, vetor_ids ):
         self.match('(')
 
+        
         self.secaoParametrosFormais(hash_id, nivel, True, vetor_ids)
-
         while self.tokenAtual() == ';':
             self.match(';')
 
@@ -380,7 +381,7 @@ class AnalisadorDescendente():
         deslocamento = -3
         while i > 0:
             item = DistribuidorHash.getItemHash( hash_id, vetor_ids[i] )
-            item.setDeslocamento( deslocamento )
+            item['valor'].setDeslocamento( deslocamento )
             deslocamento -= 1
             i -= 1
 
@@ -423,7 +424,7 @@ class AnalisadorDescendente():
 
             vetor_ids.extend(vetor_local)
 
-            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None)
+            # self.identificador(False, None, None, None, None, None, None, None, None, None, None, None)
 
     # @logFunc
     def comando(self):
@@ -447,7 +448,7 @@ class AnalisadorDescendente():
             self.comandoComposto()
 
         else:
-            self.identificador()
+            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
 
             if self.tokenAtual() == ':=':
                 self.atribuicao()
@@ -485,7 +486,7 @@ class AnalisadorDescendente():
 
         self.match('(')
 
-        self.identificador()
+        self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
 
         self.match(')')
 
