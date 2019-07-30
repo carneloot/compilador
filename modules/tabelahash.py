@@ -7,7 +7,11 @@ class MyEncoder(json.JSONEncoder):
             newTable = []
             for i, item in enumerate(o.getTable()):
                 if item is not None:
-                    newTable.append((i, item));
+                    valor = {
+                        'chave': i,
+                        'item': item
+                    }
+                    newTable.append(valor);
             return {
                 'tabela': newTable
             }

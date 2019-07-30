@@ -117,9 +117,7 @@ class AnalisadorDescendente():
             item = DistribuidorHash.getItemHash(hash_ids, identificador)
             item['valor'].setTipo(tipo)
 
-
         self.match(';')
-
 
     def listaIdentificador(self, hash_ids, nivel, vetor_ids, passagem, is_parametro=False, is_first=True):
         if is_parametro:
@@ -144,9 +142,7 @@ class AnalisadorDescendente():
             self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
             self.deslocamento += iteracao
 
-
     def tipo(self, nivel):
-
         if self.tipoAtual() == 'ID':
             self.identificador(False, nivel, self.deslocamento, 'Palavra_tipo', self.tokenAtual, None, None, None, None, None, None, None)
         if self.tipoAtual() == 'Reservada':
