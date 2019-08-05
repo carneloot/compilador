@@ -3,6 +3,8 @@ from modules.automato import Automato
 from modules.lexico import analiseLexica
 from modules.sintatico import AnalisadorDescendente
 from modules.tabelahash import TabelaHash
+import sys
+import json
 
 def getArguments():
     parser = argparse.ArgumentParser(description='Compilador de PASCAL da disciplina de compiladores.')
@@ -60,8 +62,10 @@ if __name__ == '__main__':
 
     # Analise sintatica
     descendente = AnalisadorDescendente(tokens, arq_codigo, tabela_ids)
-    
-    descendente.run()
+
+    ast = descendente.run()
+
+    json.dump(ast, sys.stdout, default=lambda x: x.__dict__, indent=4, sort_keys=True)
 
     # Printa a tabela hash no arquivo
     with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:

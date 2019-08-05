@@ -1,6 +1,7 @@
 from modules.identificadorHash import *
 from modules.distribuidorHash import DistribuidorHash
 from modules.tabelahash import TabelaHash
+import modules.ast as ast
 
 class AnalisadorDescendente():
 
@@ -10,6 +11,10 @@ class AnalisadorDescendente():
         self.currentToken = 0
         self.tabela_ids = tabela_ids
         self.deslocamento = 0
+
+        self.tree = ast.MainNode()
+
+        self.scopeCommands = self.tree.command_list
 
     def match(self, terminal):
         if self.tokenAtual() == terminal:
@@ -41,12 +46,11 @@ class AnalisadorDescendente():
         return self.tokens[self.currentToken].tipo
 
     def run(self):
-        self.program()
+        return self.program()
 
     # Funcoes de nao terminais
 
     def program(self):
-
         if self.tokenAtual() == 'program':
 
             # Vai manter controle do nível lexico
@@ -62,12 +66,17 @@ class AnalisadorDescendente():
 
             self.match('.')
 
+        return self.tree
+
     def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
 
         if addHash:
             DistribuidorHash.insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
 
+        token = self.tokenAtual()
         self.matchTipo('ID')
+
+        return token
 
     def numero(self):
         self.matchTipo('Numero')
@@ -274,7 +283,7 @@ class AnalisadorDescendente():
     def fator(self):
 
         if self.tipoAtual() == 'ID':
-            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+            identificador = self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
             # Duas coisas podem acontecer
             # Colchetes
             if self.tokenAtual() == '[':
@@ -288,13 +297,7 @@ class AnalisadorDescendente():
 
             # Parênteses
             elif self.tokenAtual() == '(':
-                self.match('(')
-                self.expressao()
-
-                while self.tokenAtual() == ',':
-                    self.match(',')
-                    self.expressao()
-                self.match(')')
+                return self.chamadaProcedimento(identificador)
 
         elif self.tipoAtual() == 'Numero':
             self.numero()
@@ -313,11 +316,13 @@ class AnalisadorDescendente():
     def comandoComposto(self):
         self.match('begin')
 
-        self.comando()
+        comando = self.comando()
+        self.scopeCommands.append(comando)
 
         while self.tokenAtual() == ';':
             self.match(';')
-            self.comando()
+            comando = self.comando()
+            self.scopeCommands.append(comando)
 
         self.match('end')
 
@@ -381,89 +386,139 @@ class AnalisadorDescendente():
             # self.identificador(False, None, None, None, None, None, None, None, None, None, None, None)
 
     def comando(self):
-        self.comandoSemRotulo()
+        return self.comandoSemRotulo()
 
     def comandoSemRotulo(self):
         if self.tokenAtual() == 'if':
-            self.comandoCondicional()
+            return self.comandoCondicional()
 
         elif self.tokenAtual() == 'while':
-            self.comandoRepetitivo()
+            return self.comandoRepetitivo()
 
         elif self.tokenAtual() == 'read':
-            self.funcaoRead()
+            return self.funcaoRead()
 
         elif self.tokenAtual() == 'write':
-            self.funcaoWrite()
+            return self.funcaoWrite()
 
         elif self.tokenAtual() == 'begin':
             self.comandoComposto()
+            return None
 
         else:
-            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+            identificador = self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
 
             if self.tokenAtual() == ':=':
-                self.atribuicao()
+                return self.atribuicao(identificador)
             else:
-                self.chamadaProcedimento()
+                return self.chamadaProcedimento()
 
     def comandoCondicional(self):
         self.match('if')
 
-        self.expressao()
+        expressao = self.expressao()
+
+        ifNode = ast.IfNode(expressao)
 
         self.match('then')
 
-        self.comandoSemRotulo()
+        oldScope = self.scopeCommands
+        self.scopeCommands = ifNode.then_commands
+
+        comando = self.comandoSemRotulo()
+        if comando is not None:
+            ifNode.addThenCommand(comando)
+
+        self.scopeCommands = oldScope
 
         if self.tokenAtual() == 'else':
             self.match('else')
 
-            self.comandoSemRotulo()
+            self.scopeCommands = ifNode.else_commands
+
+            comando = self.comandoSemRotulo()
+            if comando is not None:
+                ifNode.addElseCommand(comando)
+
+            self.scopeCommands = oldScope
+
+        return ifNode
 
     def comandoRepetitivo(self):
         self.match('while')
 
-        self.expressao()
+        expression = self.expressao()
+
+        whileNode = ast.WhileNode(expression)
 
         self.match('do')
 
-        self.comandoSemRotulo()
+        oldScope = self.scopeCommands
+        self.scopeCommands = whileNode.command_list
+
+        comando = self.comandoSemRotulo()
+        if comando is not None:
+            whileNode.addCommand(comando)
+
+        self.scopeCommands = oldScope
+        return whileNode
 
     def funcaoRead(self):
         self.match('read')
 
         self.match('(')
 
-        self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+        readNode = ast.ReadNode()
+
+        identificador = self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+
+        readNode.addVar(identificador)
 
         self.match(')')
+
+        return readNode
 
     def funcaoWrite(self):
         self.match('write')
 
         self.match('(')
 
-        self.listaExpressao()
+        writeNode = ast.WriteNode()
+
+        writeNode.expression_list = self.listaExpressao()
 
         self.match(')')
 
-    def atribuicao(self):
+        return writeNode
+
+    def atribuicao(self, identificador):
         self.match(':=')
 
-        self.expressao()
+        expression = self.expressao()
 
-    def chamadaProcedimento(self):
+        return ast.AttrNode(identificador, expression)
+
+    def chamadaProcedimento(self, id):
         if self.tokenAtual() == '(':
             self.match('(')
 
-            self.listaExpressao()
+            procCallNode = ast.ProcCallNode(id)
+
+            procCallNode.expression_list = self.listaExpressao()
 
             self.match('(')
 
+            return procCallNode
+
+        return None
+
     def listaExpressao(self):
-        self.expressao()
+        expressionList = []
+
+        expressionList.append(self.expressao())
 
         while self.tokenAtual() == ',':
             self.match(',')
-            self.expressao()
+            expressionList.append(self.expressao())
+
+        return expressionList
