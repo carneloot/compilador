@@ -1,6 +1,7 @@
 class MainNode:
-    def __init__(self):
+    def __init__(self, identifier):
         self._type = 'MAIN'
+        self.identifier = identifier
         self.proc_func_list = []
         self.command_list = []
         self.syntax_table = []

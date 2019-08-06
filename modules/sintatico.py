@@ -12,11 +12,6 @@ class AnalisadorDescendente():
         self.tabela_ids = tabela_ids
         self.deslocamento = 0
 
-        self.tree = ast.MainNode()
-
-        self.scopeCommands = self.tree.command_list
-        self.scopeProcFuncs = self.tree.proc_func_list
-
     def match(self, terminal):
         if self.tokenAtual() == terminal:
             print(f'Li "{terminal}"')
@@ -60,7 +55,12 @@ class AnalisadorDescendente():
 
         self.match('program')
 
-        self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
+        identificador = self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
+
+        self.tree = ast.MainNode(identificador)
+
+        self.scopeCommands = self.tree.command_list
+        self.scopeProcFuncs = self.tree.proc_func_list
 
         self.match(';')
 
