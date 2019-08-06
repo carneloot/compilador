@@ -53,8 +53,9 @@ class WriteNode:
         self.expression_list.append(expression)
 
 class ProcedureNode:
-    def __init__(self):
+    def __init__(self, identifier):
         self._type = 'PROCEDURE'
+        self.identifier = identifier
         self.proc_func_list = []
         self.parameter_list = []
         self.command_list = []
@@ -67,8 +68,9 @@ class ProcedureNode:
         self.parameter_list.append(parameter)
 
 class FunctionNode:
-    def __init__(self):
+    def __init__(self, identifier):
         self._type = 'FUNCTION'
+        self.identifier = identifier
         self.proc_func_list = []
         self.parameter_list = []
         self.command_list = []

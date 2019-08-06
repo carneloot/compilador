@@ -15,6 +15,7 @@ class AnalisadorDescendente():
         self.tree = ast.MainNode()
 
         self.scopeCommands = self.tree.command_list
+        self.scopeProcFuncs = self.tree.proc_func_list
 
     def match(self, terminal):
         if self.tokenAtual() == terminal:
@@ -141,14 +142,18 @@ class AnalisadorDescendente():
 
         vetor_ids.append(self.tokenAtual())
 
-        self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
+        identifiers = []
+
+        identifiers.append(self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None ))
         self.deslocamento += iteracao
 
         while self.tokenAtual() == ',':
             self.match(',')
             vetor_ids.append(self.tokenAtual())
-            self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
+            identifiers.append(self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None ))
             self.deslocamento += iteracao
+
+        return identifiers
 
     def tipo(self, nivel):
         if self.tipoAtual() == 'ID':
@@ -165,10 +170,10 @@ class AnalisadorDescendente():
 
     def parteDeclaracaoSubRotinas(self, hash_ids, nivel):
         if self.tokenAtual() == 'procedure':
-            self.parteDeclaracaoProcedimento(hash_ids, nivel)
+            self.scopeProcFuncs.append(self.parteDeclaracaoProcedimento(hash_ids, nivel))
 
         elif self.tokenAtual() == 'function':
-            self.parteDeclaracaoFuncao(hash_ids, nivel)
+            self.scopeProcFuncs.append(self.parteDeclaracaoFuncao(hash_ids, nivel))
 
         self.match(';')
 
@@ -177,29 +182,43 @@ class AnalisadorDescendente():
         parametros = []
         nome_procedure = self.tokenAtual()
         hash_local = TabelaHash()
-        self.identificador(True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
+        identificador = self.identificador(True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
+
+        procedimento = ast.ProcedureNode(identificador)
 
         if self.tokenAtual() == '(':
-            self.parametrosFormais( hash_local, nivel + 1 , parametros)
+            procedimento.parameter_list = self.parametrosFormais( hash_local, nivel + 1 , parametros)
 
         # Editar o procedimento com o numero de parametros
         item = DistribuidorHash.getItemHash(hash_id, nome_procedure)
         item['valor'].setNumeroParametros( len(parametros) )
         self.match(';')
 
+        oldScopeCommands = self.scopeCommands
+        oldScopeProcFuncs = self.scopeProcFuncs
+
+        self.scopeCommands = procedimento.command_list
+        self.scopeProcFuncs = procedimento.proc_func_list
+
         self.bloco(hash_local, nivel + 1)
+
+        self.scopeCommands = oldScopeCommands
+        self.scopeProcFuncs = oldScopeProcFuncs
+
+        return procedimento
 
     def parteDeclaracaoFuncao(self, hash_id, nivel):
         self.match('function')
         nome_funcao = self.tokenAtual()
         parametros = []
         hash_local = TabelaHash()
-        # def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
-        self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
+
+        identificador = self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
+
+        funcao = ast.FunctionNode(identificador)
 
         if self.tokenAtual() == '(':
-            self.parametrosFormais(hash_local, nivel + 1, parametros)
-
+            funcao.parameter_list = self.parametrosFormais(hash_local, nivel + 1, parametros)
 
         self.match(':')
 
@@ -214,7 +233,18 @@ class AnalisadorDescendente():
 
         self.match(';')
 
+        oldScopeCommands = self.scopeCommands
+        oldScopeProcFuncs = self.scopeProcFuncs
+
+        self.scopeCommands = funcao.command_list
+        self.scopeProcFuncs = funcao.proc_func_list
+
         self.bloco(hash_local, nivel + 1)
+
+        self.scopeCommands = oldScopeCommands
+        self.scopeProcFuncs = oldScopeProcFuncs
+
+        return funcao
 
     def expressao(self):
         expressionNode = self.expressaoSimples()
@@ -383,11 +413,13 @@ class AnalisadorDescendente():
     def parametrosFormais(self, hash_id, nivel, vetor_ids ):
         self.match('(')
 
-        self.secaoParametrosFormais(hash_id, nivel, True, vetor_ids)
+        parametros = []
+
+        parametros += self.secaoParametrosFormais(hash_id, nivel, True, vetor_ids)
         while self.tokenAtual() == ';':
             self.match(';')
 
-            self.secaoParametrosFormais(hash_id, nivel, False, vetor_ids)
+            parametros += self.secaoParametrosFormais(hash_id, nivel, False, vetor_ids)
 
         # Arrumando deslocamento dos parametros
         i = len(vetor_ids) - 1
@@ -400,10 +432,12 @@ class AnalisadorDescendente():
 
         self.match(')')
 
+        return parametros
+
     def secaoParametrosFormais(self, hash_id, nivel, is_first, vetor_ids):
         if self.tokenAtual() == 'procedure':
             self.match('procedure')
-            self.listaIdentificador(hash_id, nivel, vetor_ids, False, is_parametro=True, is_first=is_first)
+            return self.listaIdentificador(hash_id, nivel, vetor_ids, False, is_parametro=True, is_first=is_first)
 
         else:
             passagem = False
@@ -418,7 +452,7 @@ class AnalisadorDescendente():
 
 
             vetor_local = []
-            self.listaIdentificador(hash_id, nivel, vetor_local, passagem, is_parametro=True, is_first=False)
+            identificadores = self.listaIdentificador(hash_id, nivel, vetor_local, passagem, is_parametro=True, is_first=False)
 
             self.match(':')
 
@@ -434,7 +468,7 @@ class AnalisadorDescendente():
 
             vetor_ids.extend(vetor_local)
 
-            # self.identificador(False, None, None, None, None, None, None, None, None, None, None, None)
+            return identificadores
 
     def comando(self):
         return self.comandoSemRotulo()
