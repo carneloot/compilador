@@ -65,8 +65,10 @@ if __name__ == '__main__':
 
     ast = descendente.run()
 
-    json.dump(ast, sys.stdout, default=lambda x: x.__dict__, indent=4, sort_keys=True)
+    # Printa a ast no arquivo
+    with open(f'{argumentos.saida}_ast.json', 'w') as arquivo:
+        json.dump(ast, arquivo, default=lambda x: x.__dict__, indent=4, sort_keys=True)
 
     # Printa a tabela hash no arquivo
-    with open(f'{argumentos.saida}_tabela.txt', 'w') as arquivo:
+    with open(f'{argumentos.saida}_tabela.json', 'w') as arquivo:
         tabela_ids.print(arquivo, print_none=not argumentos.skip_empty)
