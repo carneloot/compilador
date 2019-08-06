@@ -1,6 +1,7 @@
 from modules.identificadorHash import *
 from modules.distribuidorHash import DistribuidorHash
 from modules.tabelahash import TabelaHash
+import modules.ast as ast
 
 class AnalisadorDescendente():
 
@@ -14,10 +15,11 @@ class AnalisadorDescendente():
     def match(self, terminal):
         if self.tokenAtual() == terminal:
             print(f'Li "{terminal}"')
+            self.proximoToken()
+            return terminal
         else:
             raise SyntaxError(f'{self.generateLink()} Token esperado: \'{terminal}\'. Token lido: \'{self.tokenAtual()}\'')
-
-        self.proximoToken()
+        return None
 
     def generateLink(self):
         tokenAtual = self.tokens[self.currentToken]
@@ -31,52 +33,59 @@ class AnalisadorDescendente():
 
     def matchTipo(self, tipo):
         if self.tipoAtual() == tipo:
+            token = self.tokenAtual()
             print(f'{tipo} \'{self.tokenAtual()}\'')
+            self.proximoToken()
+            return token
         else:
             raise SyntaxError(f'{self.generateLink()} Tipo esperado: \'{tipo}\'. Tipo lido: \'{self.tipoAtual()}\'')
-
-        self.proximoToken()
+        return None
 
     def tipoAtual(self):
         return self.tokens[self.currentToken].tipo
 
     def run(self):
-        self.program()
+        return self.program()
 
     # Funcoes de nao terminais
 
     def program(self):
+        # Vai manter controle do nível lexico
+        nivel = 0
 
-        if self.tokenAtual() == 'program':
+        self.match('program')
 
-            # Vai manter controle do nível lexico
-            nivel = 0
+        identificador = self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
 
-            self.match('program')
+        self.tree = ast.MainNode(identificador)
 
-            self.identificador(True, self.tabela_ids, nivel, None, 'procedimento', None, None, '', 0, None, None, None)
+        self.scopeCommands = self.tree.command_list
+        self.scopeProcFuncs = self.tree.proc_func_list
 
-            self.match(';')
+        self.match(';')
 
-            self.bloco(self.tabela_ids, nivel)
+        self.bloco(self.tabela_ids, nivel)
 
-            self.match('.')
+        self.match('.')
+
+        return self.tree
 
     def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
 
         if addHash:
             DistribuidorHash.insereIdentificadorNaHash( hash_ids, self.tokenAtual(), categoria, nivel, tipo, deslocamento, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha)
 
-        self.matchTipo('ID')
+        return ast.IdentifierNode(self.matchTipo('ID'))
 
     def numero(self):
-        self.matchTipo('Numero')
+        return ast.ConstNode('Numero', self.matchTipo('Numero'))
 
     def reservada(self):
         self.matchTipo('Reservada')
 
     def string(self):
-        self.matchTipo('String')
+        # Indices para remover as aspas
+        return ast.ConstNode('String', self.matchTipo('String')[1:-1])
 
     def bloco(self, hash_ids, nivel):
         deslocamento_anterior = self.deslocamento
@@ -133,14 +142,18 @@ class AnalisadorDescendente():
 
         vetor_ids.append(self.tokenAtual())
 
-        self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
+        identifiers = []
+
+        identifiers.append(self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None ))
         self.deslocamento += iteracao
 
         while self.tokenAtual() == ',':
             self.match(',')
             vetor_ids.append(self.tokenAtual())
-            self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None )
+            identifiers.append(self.identificador(True, hash_ids, nivel, self.deslocamento, categoria, None, passagem, None, None, None, None, None ))
             self.deslocamento += iteracao
+
+        return identifiers
 
     def tipo(self, nivel):
         if self.tipoAtual() == 'ID':
@@ -157,10 +170,10 @@ class AnalisadorDescendente():
 
     def parteDeclaracaoSubRotinas(self, hash_ids, nivel):
         if self.tokenAtual() == 'procedure':
-            self.parteDeclaracaoProcedimento(hash_ids, nivel)
+            self.scopeProcFuncs.append(self.parteDeclaracaoProcedimento(hash_ids, nivel))
 
         elif self.tokenAtual() == 'function':
-            self.parteDeclaracaoFuncao(hash_ids, nivel)
+            self.scopeProcFuncs.append(self.parteDeclaracaoFuncao(hash_ids, nivel))
 
         self.match(';')
 
@@ -169,29 +182,43 @@ class AnalisadorDescendente():
         parametros = []
         nome_procedure = self.tokenAtual()
         hash_local = TabelaHash()
-        self.identificador(True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
+        identificador = self.identificador(True, hash_id, nivel, None, 'procedimento', None, None, '', 0, parametros, None, hash_local)
+
+        procedimento = ast.ProcedureNode(identificador)
 
         if self.tokenAtual() == '(':
-            self.parametrosFormais( hash_local, nivel + 1 , parametros)
+            procedimento.parameter_list = self.parametrosFormais( hash_local, nivel + 1 , parametros)
 
         # Editar o procedimento com o numero de parametros
         item = DistribuidorHash.getItemHash(hash_id, nome_procedure)
         item['valor'].setNumeroParametros( len(parametros) )
         self.match(';')
 
+        oldScopeCommands = self.scopeCommands
+        oldScopeProcFuncs = self.scopeProcFuncs
+
+        self.scopeCommands = procedimento.command_list
+        self.scopeProcFuncs = procedimento.proc_func_list
+
         self.bloco(hash_local, nivel + 1)
+
+        self.scopeCommands = oldScopeCommands
+        self.scopeProcFuncs = oldScopeProcFuncs
+
+        return procedimento
 
     def parteDeclaracaoFuncao(self, hash_id, nivel):
         self.match('function')
         nome_funcao = self.tokenAtual()
         parametros = []
         hash_local = TabelaHash()
-        # def identificador(self, addHash, hash_ids, nivel, deslocamento, categoria, tipo, passagem, rotulo, n_parametros, vetor_parametros_passagem, retorno, hash_filha):
-        self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
+
+        identificador = self.identificador(True, hash_id, nivel, None, 'procedimento', '', None, '', 0, parametros, '', hash_local)
+
+        funcao = ast.FunctionNode(identificador)
 
         if self.tokenAtual() == '(':
-            self.parametrosFormais(hash_local, nivel + 1, parametros)
-
+            funcao.parameter_list = self.parametrosFormais(hash_local, nivel + 1, parametros)
 
         self.match(':')
 
@@ -204,77 +231,138 @@ class AnalisadorDescendente():
         item['valor'].setRetorno(tipo)
         item['valor'].setNumeroParametros(len(parametros))
 
-
-
         self.match(';')
+
+        oldScopeCommands = self.scopeCommands
+        oldScopeProcFuncs = self.scopeProcFuncs
+
+        self.scopeCommands = funcao.command_list
+        self.scopeProcFuncs = funcao.proc_func_list
 
         self.bloco(hash_local, nivel + 1)
 
+        self.scopeCommands = oldScopeCommands
+        self.scopeProcFuncs = oldScopeProcFuncs
+
+        return funcao
+
     def expressao(self):
-        self.expressaoSimples()
+        expressionNode = self.expressaoSimples()
 
         if self.tokenAtual() == '=':
-            self.match('=')
-            self.expressaoSimples()
+            expressionNode = ast.ExpressionNode(
+                left=expressionNode,
+                relation=self.match('='),
+                right=self.expressaoSimples()
+            )
 
         elif self.tokenAtual() == '<>':
-            self.match('<>')
-            self.expressaoSimples()
+            expressionNode = ast.ExpressionNode(
+                left=expressionNode,
+                relation=self.match('<>'),
+                right=self.expressaoSimples()
+            )
 
         elif self.tokenAtual() == '<':
-            self.match('<')
-            self.expressaoSimples()
+            expressionNode = ast.ExpressionNode(
+                left=expressionNode,
+                relation=self.match('<'),
+                right=self.expressaoSimples()
+            )
 
         elif self.tokenAtual() == '<=':
-            self.match('<=')
-            self.expressaoSimples()
+            expressionNode = ast.ExpressionNode(
+                left=expressionNode,
+                relation=self.match('<='),
+                right=self.expressaoSimples()
+            )
 
         elif self.tokenAtual() == '>=':
-            self.match('>=')
-            self.expressaoSimples()
+            expressionNode = ast.ExpressionNode(
+                left=expressionNode,
+                relation=self.match('>='),
+                right=self.expressaoSimples()
+            )
 
         elif self.tokenAtual() == '>':
-            self.match('>')
-            self.expressaoSimples()
+            expressionNode = ast.ExpressionNode(
+                left=expressionNode,
+                relation=self.match('>'),
+                right=self.expressaoSimples()
+            )
+
+        return expressionNode
 
     def expressaoSimples(self):
 
-        if self.tokenAtual() == '+':
-            self.match('+')
-        elif self.tokenAtual() == '-':
-            self.match('-')
-
-        self.termo()
+        beforeToken = None
 
         if self.tokenAtual() == '+':
-            self.match('+')
-            self.expressaoSimples()
+            beforeToken = self.match('+')
         elif self.tokenAtual() == '-':
-            self.match('-')
-            self.expressaoSimples()
+            beforeToken = self.match('-')
+
+        result = self.termo()
+
+        if beforeToken is not None:
+            result = ast.ExpressionNode(
+                relation=beforeToken,
+                right=result
+            )
+
+        if self.tokenAtual() == '+':
+            result = ast.ExpressionNode(
+                left=result,
+                relation=self.match('+'),
+                right=self.expressaoSimples()
+            )
+
+        elif self.tokenAtual() == '-':
+            result = ast.ExpressionNode(
+                left=result,
+                relation=self.match('-'),
+                right=self.expressaoSimples()
+            )
+
         elif self.tokenAtual() == 'or':
-            self.match('or')
-            self.expressaoSimples()
+            result = ast.ExpressionNode(
+                left=result,
+                relation=self.match('or'),
+                right=self.expressaoSimples()
+            )
+
+        return result
 
     def termo(self):
-        self.fator()
+        result = self.fator()
 
         if self.tokenAtual() == '*':
-            self.match('*')
-            self.termo()
+            result = ast.ExpressionNode(
+                left=result,
+                relation=self.match('*'),
+                right=self.termo()
+            )
 
         elif self.tokenAtual() == 'div':
-            self.match('div')
-            self.termo()
+            result = ast.ExpressionNode(
+                left=result,
+                relation=self.match('div'),
+                right=self.termo()
+            )
 
         elif self.tokenAtual() == 'and':
-            self.match('and')
-            self.termo()
+            result = ast.ExpressionNode(
+                left=result,
+                relation=self.match('and'),
+                right=self.termo()
+            )
+
+        return result
 
     def fator(self):
 
         if self.tipoAtual() == 'ID':
-            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+            identificador = self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
             # Duas coisas podem acontecer
             # Colchetes
             if self.tokenAtual() == '[':
@@ -288,48 +376,50 @@ class AnalisadorDescendente():
 
             # Parênteses
             elif self.tokenAtual() == '(':
-                self.match('(')
-                self.expressao()
+                return self.chamadaProcedimento(identificador)
 
-                while self.tokenAtual() == ',':
-                    self.match(',')
-                    self.expressao()
-                self.match(')')
+            return identificador
 
         elif self.tipoAtual() == 'Numero':
-            self.numero()
+            return self.numero()
 
         elif self.tipoAtual() == 'String':
-            self.string()
+            return self.string()
 
         elif self.tokenAtual() == '(':
             self.match('(')
-            self.expressao()
+            expression = self.expressao()
             self.match(')')
+            return expression
         else:
-            self.match('not')
-            self.fator()
+            return ast.ExpressionNode(
+                relation=self.match('not'),
+                right=self.fator()
+            )
 
     def comandoComposto(self):
         self.match('begin')
 
-        self.comando()
+        comando = self.comando()
+        self.scopeCommands.append(comando)
 
         while self.tokenAtual() == ';':
             self.match(';')
-            self.comando()
+            comando = self.comando()
+            self.scopeCommands.append(comando)
 
         self.match('end')
 
     def parametrosFormais(self, hash_id, nivel, vetor_ids ):
         self.match('(')
 
+        parametros = []
 
-        self.secaoParametrosFormais(hash_id, nivel, True, vetor_ids)
+        parametros += self.secaoParametrosFormais(hash_id, nivel, True, vetor_ids)
         while self.tokenAtual() == ';':
             self.match(';')
 
-            self.secaoParametrosFormais(hash_id, nivel, False, vetor_ids)
+            parametros += self.secaoParametrosFormais(hash_id, nivel, False, vetor_ids)
 
         # Arrumando deslocamento dos parametros
         i = len(vetor_ids) - 1
@@ -342,12 +432,12 @@ class AnalisadorDescendente():
 
         self.match(')')
 
+        return parametros
+
     def secaoParametrosFormais(self, hash_id, nivel, is_first, vetor_ids):
-
-
         if self.tokenAtual() == 'procedure':
             self.match('procedure')
-            self.listaIdentificador(hash_id, nivel, vetor_ids, False, is_parametro=True, is_first=is_first)
+            return self.listaIdentificador(hash_id, nivel, vetor_ids, False, is_parametro=True, is_first=is_first)
 
         else:
             passagem = False
@@ -362,7 +452,7 @@ class AnalisadorDescendente():
 
 
             vetor_local = []
-            self.listaIdentificador(hash_id, nivel, vetor_local, passagem, is_parametro=True, is_first=False)
+            identificadores = self.listaIdentificador(hash_id, nivel, vetor_local, passagem, is_parametro=True, is_first=False)
 
             self.match(':')
 
@@ -378,92 +468,140 @@ class AnalisadorDescendente():
 
             vetor_ids.extend(vetor_local)
 
-            # self.identificador(False, None, None, None, None, None, None, None, None, None, None, None)
+            return identificadores
 
     def comando(self):
-        self.comandoSemRotulo()
+        return self.comandoSemRotulo()
 
     def comandoSemRotulo(self):
         if self.tokenAtual() == 'if':
-            self.comandoCondicional()
+            return self.comandoCondicional()
 
         elif self.tokenAtual() == 'while':
-            self.comandoRepetitivo()
+            return self.comandoRepetitivo()
 
         elif self.tokenAtual() == 'read':
-            self.funcaoRead()
+            return self.funcaoRead()
 
         elif self.tokenAtual() == 'write':
-            self.funcaoWrite()
+            return self.funcaoWrite()
 
         elif self.tokenAtual() == 'begin':
             self.comandoComposto()
+            return None
 
         else:
-            self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+            identificador = self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
 
             if self.tokenAtual() == ':=':
-                self.atribuicao()
+                return self.atribuicao(identificador)
             else:
-                self.chamadaProcedimento()
+                return self.chamadaProcedimento()
 
     def comandoCondicional(self):
         self.match('if')
 
-        self.expressao()
+        ifNode = ast.IfNode(self.expressao())
 
         self.match('then')
 
-        self.comandoSemRotulo()
+        oldScope = self.scopeCommands
+        self.scopeCommands = ifNode.then_commands
+
+        comando = self.comandoSemRotulo()
+        if comando is not None:
+            ifNode.addThenCommand(comando)
+
+        self.scopeCommands = oldScope
 
         if self.tokenAtual() == 'else':
             self.match('else')
 
-            self.comandoSemRotulo()
+            self.scopeCommands = ifNode.else_commands
+
+            comando = self.comandoSemRotulo()
+            if comando is not None:
+                ifNode.addElseCommand(comando)
+
+            self.scopeCommands = oldScope
+
+        return ifNode
 
     def comandoRepetitivo(self):
         self.match('while')
 
-        self.expressao()
+        expression = self.expressao()
+
+        whileNode = ast.WhileNode(expression)
 
         self.match('do')
 
-        self.comandoSemRotulo()
+        oldScope = self.scopeCommands
+        self.scopeCommands = whileNode.command_list
+
+        comando = self.comandoSemRotulo()
+        if comando is not None:
+            whileNode.addCommand(comando)
+
+        self.scopeCommands = oldScope
+        return whileNode
 
     def funcaoRead(self):
         self.match('read')
 
         self.match('(')
 
-        self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+        readNode = ast.ReadNode()
+
+        identificador = self.identificador(False, None, None, None, None, None, None, None, None, None, None, None )
+
+        readNode.addVar(identificador)
 
         self.match(')')
+
+        return readNode
 
     def funcaoWrite(self):
         self.match('write')
 
         self.match('(')
 
-        self.listaExpressao()
+        writeNode = ast.WriteNode()
+
+        writeNode.expression_list = self.listaExpressao()
 
         self.match(')')
 
-    def atribuicao(self):
+        return writeNode
+
+    def atribuicao(self, identificador):
         self.match(':=')
 
-        self.expressao()
+        expression = self.expressao()
 
-    def chamadaProcedimento(self):
+        return ast.AttrNode(identificador, expression)
+
+    def chamadaProcedimento(self, id):
         if self.tokenAtual() == '(':
             self.match('(')
 
-            self.listaExpressao()
+            procCallNode = ast.ProcCallNode(id)
 
-            self.match('(')
+            procCallNode.expression_list = self.listaExpressao()
+
+            self.match(')')
+
+            return procCallNode
+
+        return None
 
     def listaExpressao(self):
-        self.expressao()
+        expressionList = []
+
+        expressionList.append(self.expressao())
 
         while self.tokenAtual() == ',':
             self.match(',')
-            self.expressao()
+            expressionList.append(self.expressao())
+
+        return expressionList
